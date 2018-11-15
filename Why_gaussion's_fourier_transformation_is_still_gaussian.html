@@ -1,0 +1,183 @@
+<!DOCTYPE HTML>
+<html>
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="utf-8">
+  
+  <title>Moliam 1s CR42Y</title>
+  <meta name="author" content="Li Mo">
+  
+  <meta name="description" content="some daily thoughts">
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+  <meta property="og:site_name" content="Moliam 1s CR42Y">
+
+  
+    <meta property="og:image" content="">
+  
+
+  
+    <link rel="alternative" href="/atom.xml" title="Moliam 1s CR42Y" type="application/atom+xml">
+  
+  
+    <link href="/favicon.png" rel="icon">
+  
+  
+  <link rel="stylesheet" href="/css/bootstrap.min.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/font-awesome.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/style.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/highlight.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/google-fonts.css" media="screen" type="text/css">
+  <link rel="stylesheet" href="/css/responsive.css" media="screen" type="text/css">  
+  <link rel="stylesheet" href="/css/sidenav.css" media="screen" type="text/css">  
+  <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+
+  <script src="/js/jquery-2.0.3.min.js"></script>
+
+  <!-- analytics -->
+  
+
+</head>
+</html>
+<body id="body" data-spy="scroll" data-target=".toc">
+  <div class="container" id="container">
+	<div class="content">
+	  <div class="page-header">		
+  <h1><a class="brand" href="/">Moliam 1s CR42Y</a><span class="split"></span><span class="title"></span><span class="date" id="title-date"><i class="fa fa-clock-o"></i> 2018-11-15</span></h1>
+</div>		
+
+<div class="row page">
+  <!-- cols -->	
+  
+  
+
+  
+	<div class="col-md-12">
+	  
+
+	  <!-- content -->
+	  <p>title: Why gaussian function’s Fourier Transformation is still gaussian?<br>date: 2018-11-14 23:15:12<br>tags:<br>category: Fun<br>mathjax: true</p>
+<p>​    <strong>Gaussian function</strong> is :</p>
+<p>​    $f(x) = \frac{1}{\sqrt{2\pi}\sigma}e^{-\frac{x^2}{2\sigma^2}}$</p>
+<p>​    For sake of simplicity, we consider the following form:</p>
+<p>​    $f(x) = e^{-x^2}$</p>
+<p>​    It is an “obvious” conclusion that is taken for granted by many people that gaussian’s fourier transformation is still in gaussian form. An often seen proof is as follows:</p>
+<p>​      $F(w) = \int_{-\infty}^{\infty}f(x)e^{-iwx}dx$</p>
+<p>​        $ =  \int_{-\infty}^{\infty}e^{-(x^2+iwx)}dx$   , using  $ x^2 + iwx = (x + \frac{iw}{2})^2 - \frac{w^2}{4}$</p>
+<p>​        $= e^{-\frac{w^2}{4}}\int_{-\infty}^{\infty}e^{-(x + \frac{iw}{2})^2}dx$            ( <em>by substituting</em> $x$  <em>with</em> $u=x+\frac{iw}{2}$ )</p>
+<p>​        $= e^{-\frac{w^2}{4}}\int_{-\infty}^{\infty}e^{-u^2}du$</p>
+<p>​        $= \sqrt{\pi}e^{-\frac{w^2}{4}}$</p>
+<p>​    <em>Proved.</em></p>
+<p>​    </p>
+<p>​    <strong>Is the proof correct? Anything wierd?  </strong></p>
+<p>​    Here is the problem : why does these two expression give the same result :</p>
+<p>​    $\int_{-\infty}^{\infty}e^{-(x + \frac{iw}{2})^2}dx$    <em>(1)</em></p>
+<p>​    <em>equal to</em> </p>
+<p>​        $\int_{-\infty}^{\infty}e^{-u^2}du$     <em>(2)</em></p>
+<p>​    ??? </p>
+<p>​    In expression <em>(1)</em>, the integral region is from $-\infty$ to $\infty$ ,confined in real number field, whereas in expression <em>(2)</em>  the variable $u$ is a complex number with non-zero imaginary part, and  <strong>for a complex number with non-zero imaginary part</strong>,  $\infty$ <strong>is meaningless  because it is a concept of real number field! </strong>  Hence the form of expression <em>(2)</em> is in fact invalid (even it still leads to right answer) !  </p>
+<p>​    Thus,  the above proof is inaccurate.  And for an accurate proof, complex integeral knowledge is required, instead of the trivial substitution forementioned.  </p>
+<p>​    Usually a complex integral a <a href="https://en.wikipedia.org/wiki/Line_integral" target="_blank" rel="noopener">path integral</a>.  It is a generalization of real number integral, and integral in real number field actually corresponds to the path integral along the $x$ axis in the <a href="https://en.wikipedia.org/wiki/Complex_plane" target="_blank" rel="noopener">complex plane</a>.   </p>
+<p>​    Here I assume that the readers have the basic knowledge of computation of complex integral.  It’s time to apply the very classical and beautiful theorem in complex integral.  <a href="https://en.wikipedia.org/wiki/Cauchy%27s_integral_theorem" target="_blank" rel="noopener">Cauchy’s integral theorem</a>：</p>
+<p>​    $\oint{f(z)dz} = 0$</p>
+<p>​    , where $z$ is a complex number and $f(z)$ is <a href="https://en.wikipedia.org/wiki/Holomorphic_function" target="_blank" rel="noopener">holomorphic</a>.  </p>
+<p>​    Function $f(z) = e^{-z^2}$ is holomorphic anythere in the complex plane, thus:</p>
+<p>​    $\oint{e^{-z^2}dz} = 0$     <em>(3)</em></p>
+<p>​    is safistied along any loop path in the complex plane.  We choose to conduct the integral in the following rectangular loop:</p>
+<p><img src="/Users/momo/Desktop/Why_gaussion_transformation_is_still_gaussian.png" alt="Why_gaussion_transformation_is_still_gaussian"></p>
+<p>​    As drawn, the four edges of the rectangle are $A$, $B$, $C$, $D$. The “height” and “width” of the rectangle is $\frac{w}{2}$ ( as comparison to expression <em>(1)</em> )and $2a$, where both $w$ and $a$ are real numbers.  Thus expression <em>(3)</em> can be splitted into four parts:</p>
+<p>​    $\oint{e^{-z^2}dz} = \int_{A}{e^{-z^2}dz} + \int_{B}{e^{-z^2}dz} + \int_{C}{e^{-z^2}dz} + \int_{D}{e^{-z^2}dz} = 0$</p>
+<p>​    Furthure, by separting $z$ into $x+iy$, we have:</p>
+<p>​    $\int_{A}{e^{-z^2}dz} = \int_{a}^{-a}{e^{-z^2}dz} = \int_{a}^{-a}{e^{-x^2}dx}$</p>
+<p>​    $\int_{B}{e^{-z^2}dz} = \int_{-a}^{-a+ib}{e^{-z^2}dz} = \int_{0}^{b}{e^{-(-a+iy)^2}dy} = e^{-a^2}\int_{0}^{b}{e^{y^2+i2ay}}dy$</p>
+<p>​    $\int_{C}{e^{-z^2}dz} = \int_{-a+ib}^{a+ib}{e^{-z^2}dz} = \int_{-a}^{a}{e^{-(x+ib)^2}dx}$</p>
+<p>​    $\int_{D}{e^{-z^2}dz} = \int_{a+ib}^{a}{e^{-z^2}dz} = \int_{b}^{0}{e^{-(a+iy)^2}dy} = e^{-a^2}\int_{b}^{0}{e^{y^2-i2ay}}dy$</p>
+<p>​    Imagine that $a$ goes to $\infty$ ,  it can be easily deduced that $\int_{B}$ and $\int_{D}$ goes to zero. </p>
+<p>​    <strong><em>Finally,</em></strong> we have:</p>
+<p>​    $\lim_{a \to \infty} (\int_{a}^{-a}{e^{-x^2}dx} + \int_{-a}^{a}{e^{-(x+ib)^2}dx} ) = 0$</p>
+<p>​    , which is :</p>
+<p>​    $\int_{-\infty}^{\infty}{e^{-x^2}dx} = \int_{-\infty}^{\infty}{e^{-(x+ib)^2}dx}$        </p>
+<p>​    <strong>PROVED.</strong></p>
+	  
+
+	  <div>
+  		<center>
+		  <div class="pagination">
+<ul class="pagination">
+	
+	
+	
+	
+	
+	
+		<li class="prev disabled"><a><i class="fa fa-arrow-circle-o-left"></i>prev</a></li>
+	
+	<li><a href="/"><i class="fa fa-archive"></i>Home</a></li>
+	
+		<li class="next disabled"><a>next<i class="fa fa-arrow-circle-o-right"></i></a></li>
+	
+</ul>
+</div>
+
+		</center>
+	  </div>
+	  
+	</div> <!-- col-md-9/col-md-12 -->
+	
+  </div><!-- row -->
+
+	</div>
+  </div>
+  <div class="container-narrow">
+	<footer> <p>
+  &copy; 2018 Li Mo
+  
+      with help from <a href="http://zespia.tw/hexo/" target="_blank">Hexo</a> and <a href="http://getbootstrap.com/" target="_blank">Twitter Bootstrap</a>. Theme by <a href="http://github.com/wzpan/hexo-theme-wixo/">Wixo</a>.    
+</p> </footer>
+  </div> <!-- container-narrow -->
+  
+<a id="gotop" href="#">   
+  <span>▲</span> 
+</a>
+
+<script src="/js/jquery.imagesloaded.min.js"></script>
+<script src="/js/gallery.js"></script>
+<script src="/js/bootstrap.min.js"></script>
+<script src="/js/jquery.tableofcontents.min.js"></script>
+<script src="/js/tocgenerator.min.js"></script>
+<script src="/js/main.js"></script>
+<script src="/js/search.js"></script> 
+
+
+
+
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.css" media="screen" type="text/css">
+<script src="/fancybox/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+  $('.fancybox').fancybox();
+})(jQuery);
+</script>
+
+
+
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+        tex2jax: {
+            inlineMath: [ ["$","$"], ["\\(","\\)"] ],
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+            processEscapes: true
+        }
+    });
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax();
+        for (var i = 0; i < all.length; ++i)
+            all[i].SourceElement().parentNode.className += ' has-jax';
+    });
+</script>
+<script type="text/javascript" async src="//cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+</body>
+</html>
