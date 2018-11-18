@@ -103,18 +103,18 @@
 
 
 
-<meta name="description" content="问题引出在桌面级CPU中，Intel 从2004年末Pentium 4的 5xx系列开始向大众提供基于x86指令集扩展而来的x86-64指令的 64位CPU（这里要提一句，第一款x86-64指令集的CPU是AMD最先给出的），而桌面64位操作系统在此之后才可以被使用。Windows操作系统作为PC上最普及的操作系统，面向的用户各种各样，历史版本也十分复杂，因此在版本升级时，对比其它操作系统如lin">
+<meta name="description" content="该文章我最早post到了看雪论坛：https://bbs.pediy.com/thread-221236.html   本文是重新修改的版本。  问题引出在桌面级CPU中，Intel 从2004年末Pentium 4的 5xx系列开始向大众提供基于x86指令集扩展而来的x86-64指令的 64位CPU（这里要提一句，第一款x86-64指令集的CPU是AMD最先给出的），而桌面64位操作系统在此之">
 <meta property="og:type" content="article">
 <meta property="og:title" content="在汇编看Wow64原理">
 <meta property="og:url" content="http://yoursite.com/2018/11/17/在汇编看Wow64原理/index.html">
 <meta property="og:site_name" content="CR42Y M0">
-<meta property="og:description" content="问题引出在桌面级CPU中，Intel 从2004年末Pentium 4的 5xx系列开始向大众提供基于x86指令集扩展而来的x86-64指令的 64位CPU（这里要提一句，第一款x86-64指令集的CPU是AMD最先给出的），而桌面64位操作系统在此之后才可以被使用。Windows操作系统作为PC上最普及的操作系统，面向的用户各种各样，历史版本也十分复杂，因此在版本升级时，对比其它操作系统如lin">
+<meta property="og:description" content="该文章我最早post到了看雪论坛：https://bbs.pediy.com/thread-221236.html   本文是重新修改的版本。  问题引出在桌面级CPU中，Intel 从2004年末Pentium 4的 5xx系列开始向大众提供基于x86指令集扩展而来的x86-64指令的 64位CPU（这里要提一句，第一款x86-64指令集的CPU是AMD最先给出的），而桌面64位操作系统在此之">
 <meta property="og:locale" content="ASM, C/C++, python">
 <meta property="og:image" content="http://yoursite.com/2018/11/17/在汇编看Wow64原理/PCHunter_result.png">
-<meta property="og:updated_time" content="2018-11-18T06:43:48.019Z">
+<meta property="og:updated_time" content="2018-11-18T07:22:12.066Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="在汇编看Wow64原理">
-<meta name="twitter:description" content="问题引出在桌面级CPU中，Intel 从2004年末Pentium 4的 5xx系列开始向大众提供基于x86指令集扩展而来的x86-64指令的 64位CPU（这里要提一句，第一款x86-64指令集的CPU是AMD最先给出的），而桌面64位操作系统在此之后才可以被使用。Windows操作系统作为PC上最普及的操作系统，面向的用户各种各样，历史版本也十分复杂，因此在版本升级时，对比其它操作系统如lin">
+<meta name="twitter:description" content="该文章我最早post到了看雪论坛：https://bbs.pediy.com/thread-221236.html   本文是重新修改的版本。  问题引出在桌面级CPU中，Intel 从2004年末Pentium 4的 5xx系列开始向大众提供基于x86指令集扩展而来的x86-64指令的 64位CPU（这里要提一句，第一款x86-64指令集的CPU是AMD最先给出的），而桌面64位操作系统在此之">
 <meta name="twitter:image" content="http://yoursite.com/2018/11/17/在汇编看Wow64原理/PCHunter_result.png">
 
 
@@ -394,7 +394,10 @@
       
 
       
-        <h2 id="问题引出"><a href="#问题引出" class="headerlink" title="问题引出"></a>问题引出</h2><p>在桌面级CPU中，Intel 从2004年末Pentium 4的 5xx系列开始向大众提供基于x86指令集扩展而来的x86-64指令的 64位CPU（这里要提一句，第一款x86-64指令集的CPU是AMD最先给出的），而桌面64位操作系统在此之后才可以被使用。<strong>Windows</strong>操作系统作为PC上最普及的操作系统，面向的用户各种各样，历史版本也十分复杂，因此在版本升级时，对比其它操作系统如linux，对旧程序的兼容性都要做得好，不需要用户费神DIY处理一些BUG。一个众所周知的感受是64位windows操作系统中以前32位的程序大都可以正常地运行，当然这里是指用户态程序(ring3)。 问题来了，微软的工程师用什么方式让64位windows支持32位程序运行的呢？之前在看《windows核心编程》一书时只知道这个机制的名字叫 <a href="https://en.wikipedia.org/wiki/WoW64" target="_blank" rel="noopener">wow64</a> 及其作用的概括，但对具体实现机制一无所知。为此我上网查阅资料，结果相关文章都讲得很笼统，包括Microsoft官方文档也是从很上层架构上进行了介绍，对我来说，只了解架构不看代码就像牙疼一样难受必须处理。既然Windows系统如此易得常见，何不亲自研究窥探一把庐山面目呢？于是我就简单逆向了一下，从汇编代码的角度看一看这个wow64的机制。</p>
+        <blockquote>
+<p>该文章我最早post到了看雪论坛：<a href="https://bbs.pediy.com/thread-221236.html" target="_blank" rel="noopener">https://bbs.pediy.com/thread-221236.html</a>   本文是重新修改的版本。</p>
+</blockquote>
+<h2 id="问题引出"><a href="#问题引出" class="headerlink" title="问题引出"></a>问题引出</h2><p>在桌面级CPU中，Intel 从2004年末Pentium 4的 5xx系列开始向大众提供基于x86指令集扩展而来的x86-64指令的 64位CPU（这里要提一句，第一款x86-64指令集的CPU是AMD最先给出的），而桌面64位操作系统在此之后才可以被使用。<strong>Windows</strong>操作系统作为PC上最普及的操作系统，面向的用户各种各样，历史版本也十分复杂，因此在版本升级时，对比其它操作系统如linux，对旧程序的兼容性都要做得好，不需要用户费神DIY处理一些BUG。一个众所周知的感受是64位windows操作系统中以前32位的程序大都可以正常地运行，当然这里是指用户态程序(ring3)。 问题来了，微软的工程师用什么方式让64位windows支持32位程序运行的呢？之前在看《windows核心编程》一书时只知道这个机制的名字叫 <a href="https://en.wikipedia.org/wiki/WoW64" target="_blank" rel="noopener">wow64</a> 及其作用的概括，但对具体实现机制一无所知。为此我上网查阅资料，结果相关文章都讲得很笼统，包括Microsoft官方文档也是从很上层架构上进行了介绍，对我来说，只了解架构不看代码就像牙疼一样难受必须处理。既然Windows系统如此易得常见，何不亲自研究窥探一把庐山面目呢？于是我就简单逆向了一下，从汇编代码的角度看一看这个wow64的机制。</p>
 <p>这里插一句，其实在着手了解wow64机制前，是另外一个问题先引起了我的好奇，继而引发我对Wow64机制的探究：我们知道64位CPU比32位CPU除了将每个已有的通用寄存器宽度由32bit扩展到64bit，还增加了几个通用寄存器：R8, R9, R10, R11, R12, R13, R14, R15，那32位程序在win64上运行时这些新加的寄存器有没有用？有什么用？ 最终这个问题会被解答。</p>
 <h2 id="简单理论分析"><a href="#简单理论分析" class="headerlink" title="简单理论分析"></a>简单理论分析</h2><p>首先，先从理论大体分析一下，32位程序在64位操作系统上运行应该需要软硬件两个大方面的支持：</p>
 <p>1）硬件上，CPU的解码模式<em>需要兼容32位代码且能够来回切换</em>。机器要理解一串01二进制存储的代码，需要知道这串二进制的编码规则从而进行解码，在32位时代，程序的代码是32位CPU的编码规则，而64位时代是64位CPU的编码规则，尽管64位CPU编码规则绝大部分兼容32位的规则。所以在对不同位数的代码执行时CPU一定需要进行解码模式切换。Intel 64位CPU（我暂时只熟悉INTEL的）是通过<a href="https://en.wikipedia.org/wiki/Global_Descriptor_Table" target="_blank" rel="noopener">GDT</a>(Global Descriptor Table) 表中CS段所对应的表项中L标志位来确定当前解码模式的，所以可以推测在运行32位程序时，该标志位应该是处于32位模式的，而回到系统代码（64位）时，L标志位的值又会切换到64位模式。根据此分析，经查阅相关资料，我发现64位操作系统下GDT表的确含有为32位程序运行准备的表项，当32位代码被CPU执行时，该表项会被加载以指导CPU的解码及其它行为。读者可参考<a href="http://www.cnblogs.com/jzssuanfa/p/7280966.html" target="_blank" rel="noopener">cnblogs</a> 的博客大体了解CPU架构。</p>
@@ -582,7 +585,7 @@
               
               <div class="site-state-item site-state-tags">
                 
-                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-count">1</span>
                   <span class="site-state-item-name">tags</span>
                 
               </div>
