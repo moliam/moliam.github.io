@@ -1,0 +1,1186 @@
+<!DOCTYPE html>
+
+
+
+
+<html class="theme-next pisces" lang="ASM, C/C++, python">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Programming, Math, Machine Learning">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="问题引出在桌面级CPU中，Intel 从2004年末Pentium 4的 5xx系列开始向大众提供基于x86指令集扩展而来的x86-64指令的 64位CPU（这里要提一句，第一款x86-64指令集的CPU是AMD最先给出的），而桌面64位操作系统在此之后才可以被使用。Windows操作系统作为PC上最普及的操作系统，面向的用户各种各样，历史版本也十分复杂，因此在版本升级时，对比其它操作系统如lin">
+<meta property="og:type" content="article">
+<meta property="og:title" content="在汇编看Wow64原理">
+<meta property="og:url" content="http://yoursite.com/2018/11/17/在汇编看Wow64原理/index.html">
+<meta property="og:site_name" content="CR42Y M0">
+<meta property="og:description" content="问题引出在桌面级CPU中，Intel 从2004年末Pentium 4的 5xx系列开始向大众提供基于x86指令集扩展而来的x86-64指令的 64位CPU（这里要提一句，第一款x86-64指令集的CPU是AMD最先给出的），而桌面64位操作系统在此之后才可以被使用。Windows操作系统作为PC上最普及的操作系统，面向的用户各种各样，历史版本也十分复杂，因此在版本升级时，对比其它操作系统如lin">
+<meta property="og:locale" content="ASM, C/C++, python">
+<meta property="og:image" content="http://yoursite.com/2018/11/17/在汇编看Wow64原理/PCHunter_result.png">
+<meta property="og:updated_time" content="2018-11-18T06:43:48.019Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="在汇编看Wow64原理">
+<meta name="twitter:description" content="问题引出在桌面级CPU中，Intel 从2004年末Pentium 4的 5xx系列开始向大众提供基于x86指令集扩展而来的x86-64指令的 64位CPU（这里要提一句，第一款x86-64指令集的CPU是AMD最先给出的），而桌面64位操作系统在此之后才可以被使用。Windows操作系统作为PC上最普及的操作系统，面向的用户各种各样，历史版本也十分复杂，因此在版本升级时，对比其它操作系统如lin">
+<meta name="twitter:image" content="http://yoursite.com/2018/11/17/在汇编看Wow64原理/PCHunter_result.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/11/17/在汇编看Wow64原理/">
+
+
+
+
+
+  <title>在汇编看Wow64原理 | CR42Y M0</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="ASM, C/C++, python">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">CR42Y M0</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">some ideas. Tt.</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            Archives
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="Searching..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/11/17/在汇编看Wow64原理/">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Mo, Li">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="CR42Y M0">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">在汇编看Wow64原理</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2018-11-17T23:35:54+08:00">
+                2018-11-17
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/Operating-System/" itemprop="url" rel="index">
+                    <span itemprop="name">Operating System</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-file-o"></i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>Read
+            </span>
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="问题引出"><a href="#问题引出" class="headerlink" title="问题引出"></a>问题引出</h2><p>在桌面级CPU中，Intel 从2004年末Pentium 4的 5xx系列开始向大众提供基于x86指令集扩展而来的x86-64指令的 64位CPU（这里要提一句，第一款x86-64指令集的CPU是AMD最先给出的），而桌面64位操作系统在此之后才可以被使用。<strong>Windows</strong>操作系统作为PC上最普及的操作系统，面向的用户各种各样，历史版本也十分复杂，因此在版本升级时，对比其它操作系统如linux，对旧程序的兼容性都要做得好，不需要用户费神DIY处理一些BUG。一个众所周知的感受是64位windows操作系统中以前32位的程序大都可以正常地运行，当然这里是指用户态程序(ring3)。 问题来了，微软的工程师用什么方式让64位windows支持32位程序运行的呢？之前在看《windows核心编程》一书时只知道这个机制的名字叫 <a href="https://en.wikipedia.org/wiki/WoW64" target="_blank" rel="noopener">wow64</a> 及其作用的概括，但对具体实现机制一无所知。为此我上网查阅资料，结果相关文章都讲得很笼统，包括Microsoft官方文档也是从很上层架构上进行了介绍，对我来说，只了解架构不看代码就像牙疼一样难受必须处理。既然Windows系统如此易得常见，何不亲自研究窥探一把庐山面目呢？于是我就简单逆向了一下，从汇编代码的角度看一看这个wow64的机制。</p>
+<p>这里插一句，其实在着手了解wow64机制前，是另外一个问题先引起了我的好奇，继而引发我对Wow64机制的探究：我们知道64位CPU比32位CPU除了将每个已有的通用寄存器宽度由32bit扩展到64bit，还增加了几个通用寄存器：R8, R9, R10, R11, R12, R13, R14, R15，那32位程序在win64上运行时这些新加的寄存器有没有用？有什么用？ 最终这个问题会被解答。</p>
+<h2 id="简单理论分析"><a href="#简单理论分析" class="headerlink" title="简单理论分析"></a>简单理论分析</h2><p>首先，先从理论大体分析一下，32位程序在64位操作系统上运行应该需要软硬件两个大方面的支持：</p>
+<p>1）硬件上，CPU的解码模式<em>需要兼容32位代码且能够来回切换</em>。机器要理解一串01二进制存储的代码，需要知道这串二进制的编码规则从而进行解码，在32位时代，程序的代码是32位CPU的编码规则，而64位时代是64位CPU的编码规则，尽管64位CPU编码规则绝大部分兼容32位的规则。所以在对不同位数的代码执行时CPU一定需要进行解码模式切换。Intel 64位CPU（我暂时只熟悉INTEL的）是通过<a href="https://en.wikipedia.org/wiki/Global_Descriptor_Table" target="_blank" rel="noopener">GDT</a>(Global Descriptor Table) 表中CS段所对应的表项中L标志位来确定当前解码模式的，所以可以推测在运行32位程序时，该标志位应该是处于32位模式的，而回到系统代码（64位）时，L标志位的值又会切换到64位模式。根据此分析，经查阅相关资料，我发现64位操作系统下GDT表的确含有为32位程序运行准备的表项，当32位代码被CPU执行时，该表项会被加载以指导CPU的解码及其它行为。读者可参考<a href="http://www.cnblogs.com/jzssuanfa/p/7280966.html" target="_blank" rel="noopener">cnblogs</a> 的博客大体了解CPU架构。</p>
+<p>2）软件上，操作系统需要提供32位的用户态运行时环境（如32位C运行时库，32位WINDOWS API等）对32位程序的运行提供支持，其次因为<em>64位windows的内核肯定是64位模式的</em>，所以32位用户态运行时环境在与64位内核交互时需要有状态转换，我们这里就以32位程序与64位内核交互（即模式切换）为方向进行探索。当然在软件层面另外肯定还有大量其它的兼容32位软件所需要实现的功能，比如资源管理，句柄管理，结构化错误管理等等，这些本质属于对模式切换机制的高级应用，就不进行研究了。</p>
+<h2 id="循迹探索"><a href="#循迹探索" class="headerlink" title="循迹探索"></a>循迹探索</h2><p>好了，接下来针对上面的分析进行探索。关于32位运行时环境这点，可以在 <strong>C:/windows/syswow64</strong> 中发现许多和 <strong>C:/windows/system32</strong> 下同名的动态链接库，如kernel32.dll, ntdll.dll, msvcrt.dll, ws2_32.dll等，其实这些都是32位的版本。（注意:system32的意思并不是说操作系统是32位的，64位操作系统的运行时环境依然保存在system32下，可参看下<a href="https://blog.csdn.net/fly2leo/article/details/11620273" target="_blank" rel="noopener">这篇文章</a>）  像wow64名字所传达的含义一样，syswow64文件夹下的这些库相当于在64位windows中构建了一个32位windows子系统环境，我们32位的程序能正常在win64上运行正是靠这个子环境负责与64位环境进行了交互和兼容，所以需要重点探究下这个32位子环境是如何与win64环境交互的。</p>
+<p>我这里用到的工具是PCHunter与调试器MDebug，静态分析工具IDA。</p>
+<p>了解windows的读者都知道ntdll.dll是用户态与内核态交互的桥梁，所以我选择从ntdll.dll入手，选择了逻辑简单的<code>NtAllocateVirtualMemory</code>函数。首先看一下原生32位操作系统里这个函数是什么样的。我手头有个win8 32bit版本，利用MDebug直接转到<code>NtAllocateVirtualMemory</code>函数查看反汇编，可以看到，在设置好调用号<code>0x19B</code>之后直接就使用<code>sysenter</code>进行了系统调用，中间没有其它操作，下面是相应的反汇编代码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">NtAllocateVirtualMemory:</span><br><span class="line">7778F048	mov eax, 0x19B</span><br><span class="line">7778F04D 	call sub_7778F055(7778F055)</span><br><span class="line">7778F052 	ret 0x18</span><br><span class="line"></span><br><span class="line">sub_7778F055:</span><br><span class="line">7778F055	mov edx, esp</span><br><span class="line">7778F057	sysenter</span><br><span class="line">7778F059	ret</span><br></pre></td></tr></table></figure>
+<p>看完原生32位操作系统里的样子，win64中运行一个32位程序时它的进程空间里的<code>NtAllocateVirtualMemory</code>是一番什么情景呢？我手头有win7 64bit版，运行的一个32bit程序进行调试，可以看到<code>NtAllocateVirtualMemory</code>的形式如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">NtAllocateVirtualMemory:</span><br><span class="line">77C8FAD0   mov       eax,0x15</span><br><span class="line">77C8FAD5   xor        ecx,ecx</span><br><span class="line">77C8FAD7   lea        edx,[esp+0x4]</span><br><span class="line">77C8FADB   call       dword ptr fs:[000000C0]</span><br><span class="line">77C8FAE2   add		  esp,4</span><br><span class="line">77C8FAE5   ret        0x18</span><br></pre></td></tr></table></figure>
+<p><strong>区别很明显</strong>，wow64中的ntdll.dll与原生32位windows中的ntdll.dll有了变动，它不再是与内核交互的最后一个用户态模块，而是<code>call</code> 进了<code>fs:[C0]</code>处的函数，隐约感觉这里就是解密Wow64底层机制的入口。那么<code>fs:[C0]</code>是什么呢？Windows操作系统中，<code>fs</code>寄存器用于记录<a href="https://en.wikipedia.org/wiki/Win32_Thread_Information_Block" target="_blank" rel="noopener">线程环境块TEB</a>，根据TEB结构体定义可以看出<code>0xC0</code>偏移处的定义为：</p>
+<p><code>PVOID WOW32Reserved;  // 0xC0</code></p>
+<p>原来在wow64之前还有wow32机制，类似地，它是用于在32位windows上兼容运行旧16位的windows程序，这不是刚好可以旧药新用吗？所以windows系统在wow64中就利用这个保留位置用于进行32位64位环境切换的跳板。当然，这个“鹊巢鸠占“行为也就意味着64位windows无法直接支持16位程序了（但是可以通过安装虚拟机在64windows上运行16位程序，那是完全不同的原理）。   </p>
+<p>继续，单步跟进，发现<code>fs:[C0]</code>处只有一行代码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">752B2320   jmp         0033:752B271E</span><br></pre></td></tr></table></figure>
+<p>，<strong>但却是极为关键的一步</strong>。这里是一个长跳转( <a href="https://c9x.me/x86/html/file_module_x86_id_147.html" target="_blank" rel="noopener">far jump</a> )，CS段寄存器由当前的值变换为<code>0x33</code>，当前是多少呢？ 通过调试器很容易知道当前CS段寄存器是<code>0x23</code>（实际上64位windows在运行32位程序时为其分配的默认CS值就是<code>0x23</code>）。在64位windows操作系统中中，<code>0x23</code>和<code>0x33</code>所对应的GDT表项的CPU解码模式分别为32位与64位！所以，<strong>CPU解码模式自此由32位切换为64位</strong>！感觉有了很大发现！跳转目的地址是内存<code>752B271E</code>处， 但是MDebug调试器显示<code>752B271E</code>处于未知模块，这是因为调试器本身也运行于某个特定模式下，我们调试32位的程序使用的是32位调试器，必然运行于32位模式下，而<code>752B271E</code>处所在的世界则是64位的，从对用户透明设计的原则出发操作系统自然不会将这里的结构信息主动提供给调试器。这时需要借助PCHunter，通过PcHunter发现该地址其实位于加载到内存中的一个叫wow64cpu.dll的模块中，而该模块是来自system32而非syswow64目录，也就是说：wow64下32位程序的用户态进程空间内同时加载了32位与64位的文件模块！其实在这个32位程序的进程空间里一共有4个来自system32目录的“客人”：</p>
+<p><img src="/2018/11/17/在汇编看Wow64原理/PCHunter_result.png" alt="PCHunter_result"></p>
+<p>而且，这里有了真正的64位ntdll.dll的出现，即真正可以与内核直接交互的接口。所以很容易可以推断，<strong>wow64.dll, wow64win.dll, wow64cpu.dll提供了模式转换的运行环境，而最终依然是ntdll.dll负责与内核交互</strong>，wow64中这4个模块在默默地在后台支持着32位程序的运行。</p>
+<p>当然，故事还未结束。不过由于调试器是32位，无法准确捕获接下来发生的事情了，单步跟进也无济于事，故我们转为使用IDA静态分析。</p>
+<p>找到wow64cpu.dll中<code>752B271E</code>所对应的位置进行静态反汇编：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">00000000752B271E   mov         r8d,[esp]            //取出返回地址</span><br><span class="line">00000000752B2723   mov         [r13+0xBC],r8d       //保存返回地址</span><br><span class="line">00000000752B272A   mov         [r13+0xC8],esp       //保存32位环境堆栈指针</span><br><span class="line">00000000752B2731   mov         rsp,[r12+0x1480]     //切换至64位环境堆栈</span><br><span class="line">00000000752B2739   and         qword ptr [r12+0x1480],0x0</span><br><span class="line">00000000752B2742   mov         r11d,edx</span><br><span class="line">00000000752B2745   jmp         qword ptr [r15+rcx*8]</span><br></pre></td></tr></table></figure>
+<p>注释是我自行添加，非IDA提供。第一句读取<code>[esp]</code>的值其实是把返回地址取出，接着保存到了<code>r13</code>所指向的位置，同时还保存了<code>esp</code>，然后重新赋值了<code>rsp</code>。看了这一小段，我们基本可以猜测到，在wow64中那个幕后的64位运行子环境里其实是有自己的<em>堆栈</em>和<em>执行上下文</em>的，在CPU模式由32位切换到64位后，堆栈也相应切换。好了，下面要搞明白最后一句跳向了哪里，也就是<code>[r15+rcx*8]</code>的值，我们上面考察的<code>NtAllocateVirtualMemory</code>在<code>77C8FAD5</code>处有<code>xor ecx, ecx</code>的操作，所以很明显到这里时<code>rcx = 0</code>，所以就我们考察的例子而言，最后就是跳转到了<code>[r15]</code>。<code>r15</code>的值是多少？</p>
+<p>这是有点棘手的问题。Wow64中32位程序只能由32位调试器调试，但是32位调试器下又无法获得64位模式下才可见的<code>r15</code>的值，怎么办？我这里使用shellcode的方式，利用调试器直接调试精心准备的一段shellcode，这段shellcode的作用独特而简单：让CPU强行从32位切换到64位模式，当再次到32位模式被我们重新捕获时，<code>r8</code>~<code>r15</code>的值已经被记录到了堆栈中。</p>
+<p>shellcode的二进制为：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">\x6A\x33\xE8\x00\x00\x00\x00\x83\x04\x24\x05\xCB\x48\xB8\x88\x77\x66\x55\x44\x33\x22\x11\x50\x41\x50\x41\x51\x41\x52\x41\x53\x41\x54\x41\x55\x41\x56\x41\x57\x50\xE8\x00\x00\x00\x00\xC7\x44\x24\x04\x23\x00\x00\x00\x83\x04\x24\x0D\xCB\x90</span><br></pre></td></tr></table></figure>
+<p>它的汇编意义如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">/*注意：起始时CPU处于32位模式，shellcode的反汇编以32位进行解码查看*/</span><br><span class="line">push 0x33        // cs = 0x33</span><br><span class="line">call L1</span><br><span class="line"></span><br><span class="line">L1: </span><br><span class="line">add [esp], 5     // 修改返回地址使其指向 recoder处</span><br><span class="line">retf             // far ret，返回至recorder处，并修改CS段值，切换CPU状态至64位模式</span><br><span class="line"></span><br><span class="line">/*注意：此时CPU牌64位模式，shellcode的反汇编应该以64位进行解解码码*/</span><br><span class="line">recorder:</span><br><span class="line">mov rax, 1122334455667788h       //将r8~r15用特殊值与周边数据隔开，方便查看</span><br><span class="line">push rax</span><br><span class="line"></span><br><span class="line">push r8                          //记录r8~r15至堆栈中</span><br><span class="line">push r9</span><br><span class="line">push r10</span><br><span class="line">push r11</span><br><span class="line">push r12</span><br><span class="line">push r13</span><br><span class="line">push r14</span><br><span class="line">push r15</span><br><span class="line"></span><br><span class="line">push rax</span><br><span class="line">Call L2: </span><br><span class="line"></span><br><span class="line">L2:</span><br><span class="line">mov [esp + 4], 0x23              // 设置CS段值为0x23，使程序在retf后重新回到32位模式下</span><br><span class="line">add [esp], 0xd                   //调整返回地址至nop处</span><br><span class="line">retf</span><br><span class="line"></span><br><span class="line">/*此时CPU重回32位模式*/</span><br><span class="line">nop</span><br></pre></td></tr></table></figure>
+<p>虽然32位调试器无法对64位代码运行时下断，但是可以在切换回32位模式后的地方下断点。所以在这段代码的最后 <code>nop</code>处设置断点，运行代码。执行完毕后，查看一下堆栈上的收获：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">  地址		内容</span><br><span class="line"></span><br><span class="line">0018FEA0  1122334455667788  //标记</span><br><span class="line"></span><br><span class="line">0018FEA8  00000000752B2450  r15</span><br><span class="line">0018FEB0  000000000008EC80  r14</span><br><span class="line">0018FEB8  000000000008FD20  r13</span><br><span class="line">0018FEC0  000000007EFDB000  r12</span><br><span class="line">0018FEC8  0000000000000246  r11</span><br><span class="line">0018FED0  0000000000000000  r10</span><br><span class="line">0018FED8  0000000077C8FAFA  r9</span><br><span class="line">0018FEE0  000000000000002B  r8</span><br><span class="line"></span><br><span class="line">0018FEE8  1122334455667788  //标记</span><br></pre></td></tr></table></figure>
+<p>Bingo！我们成功获得到了32位程序运行时<code>r8</code>~<code>r15</code>的值。还记得我们上面的分析中断在了<code>r15</code>的值是多少？所以此时可以我们根据<code>r15</code>的值定位了，它就是位于wow64cpu.dll文件模块内，是指向了一堆函数指针：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">78B62450  dq offset TurboDispatchJumpAddressEnd    //r15指向处</span><br><span class="line">78B62458    dq offset sub_78B62DBA</span><br><span class="line">78B62460    dq offset sub_78B62BCE</span><br><span class="line">78B62468    dq offset sub_78B62D6A</span><br><span class="line"></span><br><span class="line">/*后面还有很多函数指针，省略*/</span><br></pre></td></tr></table></figure>
+<p>这里注意IDA的内存值和动态运行时会有偏移，因为模块是经过了内存地址随机化加载。其实在第一次打开wow64cpu.dll寻找那个最开始的64位环境中的位置<code>752B271E</code>时，就可以看到它附近有一个名为<code>CpuSimulate</code>的函数，里面有这样的操作：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">78B625F9    mov     r12, gs:30h            </span><br><span class="line">78B62602    lea     r15, off_78B62450</span><br></pre></td></tr></table></figure>
+<p>可以看到<code>r15</code>是指向了偏移<code>78B62450</code>处，对应随机化动态加载后就是<code>752B2450</code>。所以这也印证了我们的实验结果。这里还可以看到的一点是<code>r12</code>指向了64位运行子环境下的TEB，因为64位下<code>gs</code>段寄存器用于记录TEB结构。</p>
+<p>回到<code>r15</code>的跳转去向问题上，已经得知<code>[r15]</code>是指向了<code>TurboDispatchJumpAddressEnd</code>处，就是上文<code>jmp qword ptr [r15+rcx*8]</code>所要跳转到的地方（<code>ecx = 0</code>），看一下它的代码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">TurboDispatchJumpAddressEnd:</span><br><span class="line">78B62749    mov     [r13+0A4h], esi           //保存32位环境下的一系列通用寄存器</span><br><span class="line">78B62750    mov     [r13+0A0h], edi</span><br><span class="line">78B62757    mov     [r13+0A8h], ebx</span><br><span class="line">78B6275E    mov     [r13+0B8h], ebp           </span><br><span class="line">78B62765    pushfq</span><br><span class="line">78B62766    pop     rbx</span><br><span class="line">78B62767    mov     [r13+0C4h], ebx           //保存32位环境的eflags</span><br><span class="line">78B6276E    mov     ecx, eax                  //系统调用号</span><br><span class="line">78B62770    call    cs:Wow64SystemServiceEx   //继续完成系统调用服务</span><br><span class="line">78B62776    mov     [r13+0B4h], eax</span><br><span class="line">78B6277D    jmp     loc_78B62611</span><br></pre></td></tr></table></figure>
+<p>上面的代码最后跳转到<code>78B62611</code>，<code>loc_78B62611</code>的代码如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">loc_78B62611:                         </span><br><span class="line">78B62611   and     dword ptr [r13+2D0h], 1</span><br><span class="line">78B62619   jz      loc_78B626CE</span><br><span class="line">78B6261F   movaps  xmm0, xmmword ptr [r13+170h]</span><br><span class="line">78B62627   movaps  xmm1, xmmword ptr [r13+180h]</span><br><span class="line">78B6262F   movaps  xmm2, xmmword ptr [r13+190h]</span><br><span class="line">78B62637   movaps  xmm3, xmmword ptr [r13+1A0h]</span><br><span class="line">78B6263F   movaps  xmm4, xmmword ptr [r13+1B0h]</span><br><span class="line">78B62647   movaps  xmm5, xmmword ptr [r13+1C0h]</span><br><span class="line">78B6264F   mov     ecx, [r13+0B0h]</span><br><span class="line">78B62656   mov     edx, [r13+0ACh]</span><br><span class="line">78B6265D   and     dword ptr [r13+2D0h], 0FFFFFFFEh</span><br><span class="line">78B62665   mov     edi, [r13+0A0h]</span><br><span class="line">78B6266C   mov     esi, [r13+0A4h]</span><br><span class="line">78B62673   mov     ebx, [r13+0A8h]</span><br><span class="line">78B6267A   mov     ebp, [r13+0B8h]</span><br><span class="line">78B62681   mov     eax, [r13+0B4h]          //恢复32位环境寄存器</span><br><span class="line">78B62688   mov     [r12+1480h], rsp         //保存64位环境堆栈指针</span><br><span class="line">78B62690   mov     [rsp+0B8h+var_B0], 23h</span><br><span class="line">78B62697   mov     [rsp+0B8h+var_98], 2Bh</span><br><span class="line">78B6269E   mov     r8d, [r13+0C4h]          //取出之前保存的32位环境eflags        </span><br><span class="line">78B626A5   and     dword ptr [r13+0C4h], 0FFFFFEFFh</span><br><span class="line">78B626B0   mov     [rsp+0B8h+var_A8], r8d    </span><br><span class="line">78B626B5   mov     r8d, [r13+0C8h]</span><br><span class="line">78B626BC   mov     [rsp+0B8h+var_A0], r8</span><br><span class="line">78B626C1   mov     r8d, [r13+0BCh]</span><br><span class="line">78B626C8   mov     [rsp+0B8h+var_B8], r8</span><br><span class="line">78B626CC   iretq                            //设置好堆栈，返回至32位模式返回地址处</span><br></pre></td></tr></table></figure>
+<p>可以看到，在<code>TurboDispatchJumpAddressEnd</code>代码片段中，调用了一个外部函<code>Wow64SystemServiceEx</code>，由这个函数再继续未完成的工作，它最终调用64位的ntdll.dll的<code>NtAllocateVirtualMemory</code>来完成真正的系统调用与内核交互。<code>TurboDispatchJumpAddressEnd</code>最后跳转至<code>78B62611</code>，将CPU主要寄存器值恢复至之前保存好的32位环境中的值，同时在堆栈中排布好返回地址，cs段寄存器值，<code>eflags</code>值，执行<code>iretq</code>，返回至32位环境中，在我们的例子中，即返回到<code>NtAllocateVirtualMemory</code>中<code>call  dword ptr fs:[C0]</code>的下一句，从32位用户的视角来看就像执行了一个普通函数一样。上面讲到跳转的函数指针表是根据<code>r15+rcx*8</code>来得到的，在32位子空间的ntdll.dll里面的函数在<code>call  dword ptr fs:[C0]</code>前都有对<code>ecx</code>的赋值，我们可以推测在wow64中，系统调用被分成多类，类别号存在于<code>rcx</code>中(注意不是系统号)，64位子环境根据<code>rcx</code>的值来进行不同类别的模拟转换。</p>
+<p><code>Wow64SystemServiceEx</code>做的事情就暂时不详细研究了，感兴趣的人可以细细钻研。</p>
+<p>对这次简单的wow64之旅做个小总结：</p>
+<ul>
+<li><p>windows/syswow64目录下的大量DLL库与SYSTEM32目录下的wow64.dll, wow64cpu.dll, wow64win.dll, ntdll.dll支撑着wow64机制</p>
+</li>
+<li><p>Wow64下32位进程中实际有32位和64位两个逻辑子空间，每个子空间都 有各自的数据结构、堆栈，64位子空间负责与操作系统内核交互：</p>
+<p>32位用户态模式  &lt;————-&gt;  64位用户态模式  &lt;—————————&gt; 64位内核</p>
+</li>
+</ul>
+<ul>
+<li>Wow64模式下，那些不可见的寄存器并不都是闲置不用的，实际上它们在切换到64位子环境后全部启用，和正常64位程序无差别。且经过分析可以知道有确切作用的寄存器有：</li>
+</ul>
+<p><code>R12</code>:   指向64位环境的TEB结构体 </p>
+<p><code>R13</code>：指向保存32位环境CPU的状态的位置</p>
+<p><code>R15</code>:   指向系统服务跳转函数指针列表的起始</p>
+<p>上面是针对win7下做的一个wow64机制小探索，我也简单看了下在win8和win10下的wow64过程，在反汇编代码上有些小不同，但是逻辑原理是完全相同的，感兴趣的可以实践。 </p>
+<p>PS：windbg可以通过wow64的扩展组件更好地调试wow64程序。然而我在写文章前却不知道。。。。。。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/11/14/On-the-computation-of-gaussian-s-Fourier-Transformation/" rel="next" title="On the computation of gaussian's Fourier Transformation">
+                <i class="fa fa-chevron-left"></i> On the computation of gaussian's Fourier Transformation
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Mo, Li</p>
+              <p class="site-description motion-element" itemprop="description">OS / Programming / NN / Math</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-name">tags</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/moliam" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:phylimo@163.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#问题引出"><span class="nav-number">1.</span> <span class="nav-text">问题引出</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#简单理论分析"><span class="nav-number">2.</span> <span class="nav-text">简单理论分析</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#循迹探索"><span class="nav-number">3.</span> <span class="nav-text">循迹探索</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Mo, Li</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      Read
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      Read
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+  
+
+
+  
+
+  
+
+</body>
+</html>
