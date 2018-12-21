@@ -103,18 +103,18 @@
 
 
 
-<meta name="description" content="2:  多线程与多进程python的中创建新线程就是原生的系统线程，但是python的解释器存在着全局锁GIL (Global Interpreter Lock)，它要求在任一时刻有且只有一个线程对解释器有访问权从而执行python代码，每个线程在执行python代码时都要先获取这个锁进而执行。换句话说，GIL使得python的多线程在执行python代码时其实是串行的而不是并行，可以通过计时小例">
+<meta name="description" content="python的多线程利用的就是操作系统原生线程，但是python的解释器存在着全局锁GIL (Global Interpreter Lock)，它要求在任一时刻有且只有一个线程有权利执行解释python代码的任务。换句话说，GIL使得python的多线程在执行python代码时其实是串行的而不是并行，如果之前是写C语言的话，肯定会觉得这种操作和称呼太具有欺骗性了，明明串行的东西以多线程的概念提供给">
 <meta name="keywords" content="Notes-On-Python">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Python笔记-3">
+<meta property="og:title" content="说Python -- 多线程与GIL">
 <meta property="og:url" content="http://yoursite.com/2018/12/21/notes-on-python-3.html">
 <meta property="og:site_name" content="CR42Y M0">
-<meta property="og:description" content="2:  多线程与多进程python的中创建新线程就是原生的系统线程，但是python的解释器存在着全局锁GIL (Global Interpreter Lock)，它要求在任一时刻有且只有一个线程对解释器有访问权从而执行python代码，每个线程在执行python代码时都要先获取这个锁进而执行。换句话说，GIL使得python的多线程在执行python代码时其实是串行的而不是并行，可以通过计时小例">
+<meta property="og:description" content="python的多线程利用的就是操作系统原生线程，但是python的解释器存在着全局锁GIL (Global Interpreter Lock)，它要求在任一时刻有且只有一个线程有权利执行解释python代码的任务。换句话说，GIL使得python的多线程在执行python代码时其实是串行的而不是并行，如果之前是写C语言的话，肯定会觉得这种操作和称呼太具有欺骗性了，明明串行的东西以多线程的概念提供给">
 <meta property="og:locale" content="ASM, C/C++, python">
-<meta property="og:updated_time" content="2018-12-20T16:08:59.065Z">
+<meta property="og:updated_time" content="2018-12-21T17:59:18.637Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Python笔记-3">
-<meta name="twitter:description" content="2:  多线程与多进程python的中创建新线程就是原生的系统线程，但是python的解释器存在着全局锁GIL (Global Interpreter Lock)，它要求在任一时刻有且只有一个线程对解释器有访问权从而执行python代码，每个线程在执行python代码时都要先获取这个锁进而执行。换句话说，GIL使得python的多线程在执行python代码时其实是串行的而不是并行，可以通过计时小例">
+<meta name="twitter:title" content="说Python -- 多线程与GIL">
+<meta name="twitter:description" content="python的多线程利用的就是操作系统原生线程，但是python的解释器存在着全局锁GIL (Global Interpreter Lock)，它要求在任一时刻有且只有一个线程有权利执行解释python代码的任务。换句话说，GIL使得python的多线程在执行python代码时其实是串行的而不是并行，如果之前是写C语言的话，肯定会觉得这种操作和称呼太具有欺骗性了，明明串行的东西以多线程的概念提供给">
 
 
 
@@ -150,7 +150,7 @@
 
 
 
-  <title>Python笔记-3 | CR42Y M0</title>
+  <title>说Python -- 多线程与GIL | CR42Y M0</title>
   
 
 
@@ -316,7 +316,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">Python笔记-3</h1>
+          <h1 class="post-title" itemprop="name headline">说Python -- 多线程与GIL</h1>
         
 
         <div class="post-meta">
@@ -393,10 +393,27 @@
       
 
       
-        <h1 id="2-多线程与多进程"><a href="#2-多线程与多进程" class="headerlink" title="2:  多线程与多进程"></a>2:  多线程与多进程</h1><p>python的中创建新线程就是原生的系统线程，但是python的解释器存在着全局锁GIL (Global Interpreter Lock)，它要求在任一时刻有且只有一个线程对解释器有访问权从而执行python代码，每个线程在执行python代码时都要先获取这个锁进而执行。换句话说，GIL使得python的多线程在执行python代码时其实是串行的而不是并行，可以通过计时小例子来看多线程的耗时。</p>
+        <p>python的多线程利用的就是操作系统原生线程，但是python的解释器存在着全局锁GIL (Global Interpreter Lock)，它要求在任一时刻有且只有一个线程有权利执行解释python代码的任务。换句话说，GIL使得python的多线程在执行python代码时其实是串行的而不是并行，如果之前是写C语言的话，肯定会觉得这种操作和称呼太具有欺骗性了，明明串行的东西以多线程的概念提供给用户。可以通过下面小例子来看多线程的耗时，同时有多进程的模式作为对比。</p>
 <figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> threading</span><br><span class="line"><span class="keyword">import</span> multiprocessing</span><br><span class="line"><span class="keyword">import</span> time</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">boring</span><span class="params">(x=<span class="number">123</span>)</span>:</span></span><br><span class="line">    <span class="comment"># boring calculation funciton used for costing time</span></span><br><span class="line">    a = x</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">50000000</span>):</span><br><span class="line">        a = (a + <span class="number">1</span>) % <span class="number">2</span></span><br><span class="line">    <span class="keyword">return</span> a</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">count_time</span><span class="params">(f, args=<span class="params">()</span>)</span>:</span></span><br><span class="line">    <span class="comment"># count the time cost by running function 'f' with 'args'</span></span><br><span class="line"></span><br><span class="line">    t = time.time()</span><br><span class="line">    f(*args)</span><br><span class="line">    <span class="keyword">return</span> time.time() - t</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">parallel</span><span class="params">(n, method, _target, _args=<span class="params">()</span>)</span>:</span></span><br><span class="line">    <span class="string">"""</span></span><br><span class="line"><span class="string">    run '_target' in a parallel specified by 'method'</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    n: the parallen number</span></span><br><span class="line"><span class="string">    method: parallel method, either multiprocessing.Process or threading.Thread</span></span><br><span class="line"><span class="string">    _target: target function</span></span><br><span class="line"><span class="string">    _args : arguments for running _target</span></span><br><span class="line"><span class="string">    """</span></span><br><span class="line"></span><br><span class="line">    workers = []</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> range(n):</span><br><span class="line">        _ = method(target=_target, args=_args)</span><br><span class="line">        workers.append(_)</span><br><span class="line">        _.start()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> w <span class="keyword">in</span> workers:</span><br><span class="line">        w.join()</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">test</span><span class="params">()</span>:</span></span><br><span class="line">    single_run_time = count_time(boring)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># it is lucky that multiprossing.Process and threading.Thread have similar interfaces</span></span><br><span class="line">    multi_run_time_Thread = count_time(parallel, args=(<span class="number">3</span>, threading.Thread, boring))</span><br><span class="line">    multi_run_time_Process = count_time(parallel, args=(<span class="number">3</span>, multiprocessing.Process, boring))</span><br><span class="line"></span><br><span class="line">    print(<span class="string">"single: &#123;&#125;, thread parallel: &#123;&#125;, process parallel: &#123;&#125;"</span>.format(single_run_time,</span><br><span class="line">                                                                 multi_run_time_Thread,</span><br><span class="line">                                                                multi_run_time_Process))</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">"__main__"</span>:</span><br><span class="line">    <span class="string">"""</span></span><br><span class="line"><span class="string">    In windows, 'if __name__ == "__main__"' is necessary for using multiprocessing.Process </span></span><br><span class="line"><span class="string">    """</span></span><br><span class="line"></span><br><span class="line">    test()</span><br></pre></td></tr></table></figure>
-<p>理想情况下，应该有 <code>multi_run_time_Thread = single_run_time * 3， multi_run_time_Process = single_run_time</code> ，这个理想状态是CPU有足够多核心，系统的进程调度不占时间。 当然实际中可能是 <code>multi_run_time_Thread</code> 远大于 <code>single_run_time * 3</code>，  <code>multi_run_time_Process</code> 远大于 <code>single_run_time</code>，这是因为除了测试程序外，操作系统有其它的程序也在占用CPU资源；另外如果CPU是单核的话，那多线程和多进程耗时都是一样的，因为都被退化成了串行。</p>
-<p>为什么python 要加GIL锁呢 ？ 我的理解是，这是python作者为了提升python易用性的一个理念。我们知道 C语言多线程编程时经常会碰到奇奇怪怪的疑难BUG，高并发编程高手都需要丰富的经验积累，而且针对并发编程有专门的计算机学科来研究。这一切的根因就在真正的多线程会造成资源竞争和死锁，这两大杀手使得掌控复杂的多线程编程并不是很容易。而python 对用户呈现的还是多线程的概念，不妨碍用户的编程模式架构，但是在底层执行时却使用了全局锁，从根本上杜绝了由于用户写的python代码所引起的并发问题。当然GIL锁只对python代码管用 ，如果在解释器层面发生资源竞争那就不是GIL所能hold住的了。 所以 python 的GIL让哪怕是小白用户也可以大胆地写多线程代码而不用太多地去考虑竞争问题，大大地降低了使用门槛。 而实际上这种做法也是非常实用的，因为我们很少在一个线程中完全执行计算密集型的操作，如果有类似访问文件，等待信号的阻塞操作，python的多线程的表现和原生线程的表现相差无几，所以实际中python多线程的使用体验一般比极端情境下的串行化要好的多。</p>
+<p>由于GIL的存在，应该有 <code>multi_run_time_Thread = single_run_time * 3， multi_run_time_Process = single_run_time</code> ，当然这个是理想状态的数值，即CPU有足够多核心，系统的进程调度不占时间等。 实际中可能是 <code>multi_run_time_Thread</code> 远大于 <code>single_run_time * 3</code>，  <code>multi_run_time_Process</code> 远大于 <code>single_run_time</code>，这是因为除了测试程序外，操作系统有其它的程序也在占用CPU资源；另外如果CPU是单核的话，那多线程和多进程耗时都是一样的，因为都被退化成了串行。但是依然可以看出多线程的耗时与单个任务的串行耗时累加相差无几。</p>
+<p>GIL的实现很简单，在python源码中 <code>PyEval_EvalFrameEx</code> (位于Python/ceval.c中)是负责解释执行python字节码虚拟机的主函数，可以看到这样的代码：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">PyObject *</span><br><span class="line">PyEval_EvalFrameEx(PyFrameObject *f, <span class="keyword">int</span> throwflag)</span><br><span class="line">&#123;</span><br><span class="line">    ......</span><br><span class="line">     <span class="keyword">for</span>(;;)&#123;</span><br><span class="line">     <span class="comment">//python字节码执行主循环   </span></span><br><span class="line">         </span><br><span class="line">         	<span class="keyword">if</span> (--_Py_Ticker &lt; <span class="number">0</span>) &#123;     </span><br><span class="line">        	<span class="comment">/*_Py_Ticker是为当前线程分配的执行时长标识，每运行一条python字节码指令，时长减1，如果时长耗尽就尝试切换使其它线程工作*/</span></span><br><span class="line">    			</span><br><span class="line">                ......</span><br><span class="line"></span><br><span class="line">                _Py_Ticker = _Py_CheckInterval; <span class="comment">// 为下个线程重置执行时长 </span></span><br><span class="line">           		PyThread_release_lock(interpreter_lock);   <span class="comment">//释放锁</span></span><br><span class="line">                </span><br><span class="line">        		<span class="comment">/* Other threads may run now */</span></span><br><span class="line"></span><br><span class="line">                PyThread_acquire_lock(interpreter_lock, <span class="number">1</span>); </span><br><span class="line">        		<span class="comment">//取得锁，这里取得锁的可能是另外某个线程了</span></span><br><span class="line"></span><br><span class="line">            	......</span><br><span class="line">    		&#125;</span><br><span class="line">    		......</span><br><span class="line">       </span><br><span class="line">     		<span class="keyword">switch</span>(opcode)&#123;</span><br><span class="line">            ......</span><br><span class="line">     		&#125;   </span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这里的<code>interpreter_lock</code> 就是全局锁GIL，可见python线程要想获得执行python字节码的权限需要等待获取<code>interpreter_lock</code>，如果有多个python代码线程存在，那么在一个时刻只有线程能够执行解释opcode的操作，而其它线程都卡在 <code>PyThread_acquire_lock(interpreter_lock, 1);</code>处，这就导致了python字节码的执行本质上是单线程的。</p>
+<p><strong>关于GIL锁， Doc/faq/library.rst 中有一段话：</strong></p>
+<blockquote>
+<p>Can’t we get rid of the Global Interpreter Lock?</p>
+<p>.. XXX mention multiprocessing<br>.. XXX link to dbeazley’s talk about GIL?</p>
+<p>The :term: ‘global interpreter lock’  (GIL) is often seen as a hindrance to Python’s<br>deployment on high-end multiprocessor server machines, because a multi-threaded<br>Python program effectively only uses one CPU, due to the insistence that<br>(almost) all Python code can only run while the GIL is held.</p>
+<p><strong>Back in the days of Python 1.5, Greg Stein actually implemented a comprehensive<br>patch set (the “free threading” patches) that removed the GIL and replaced it<br>with fine-grained locking.  Unfortunately, even on Windows (where locks are very<br>efficient) this ran ordinary Python code about twice as slow as the interpreter<br>using the GIL.  On Linux the performance loss was even worse because pthread<br>locks aren’t as efficient.</strong></p>
+<p>Since then, the idea of getting rid of the GIL has occasionally come up but<br>nobody has found a way to deal with the expected slowdown, and users who don’t<br>use threads would not be happy if their code ran at half the speed.  Greg’s<br>free threading patch set has not been kept up-to-date for later Python versions.</p>
+<p>This doesn’t mean that you can’t make good use of Python on multi-CPU machines!<br>You just have to be creative with dividing the work up between multiple<br><em>processes</em> rather than multiple <em>threads</em>.  Judicious use of C extensions will<br>also help; if you use a C extension to perform a time-consuming task, the<br>extension can release the GIL while the thread of execution is in the C code and<br>allow other threads to get some work done.</p>
+<p>It has been suggested that the GIL should be a per-interpreter-state lock rather<br>than truly global; interpreters then wouldn’t be able to share objects.<br>Unfortunately, this isn’t likely to happen either.  It would be a tremendous<br>amount of work, because many object implementations currently have global state.<br>For example, small integers and short strings are cached; these caches would<br>have to be moved to the interpreter state.  Other object types have their own<br>free list; these free lists would have to be moved to the interpreter state.<br>And so on.</p>
+<p>And I doubt that it can even be done in finite time, because the same problem<br>exists for 3rd party extensions. <strong>It is likely that 3rd party extensions are<br>being written at a faster rate than you can convert them to store all their<br>global state in the interpreter state.</strong></p>
+<p>And finally, once you have multiple interpreters not sharing any state, what<br>have you gained over running each interpreter in a separate process?</p>
+</blockquote>
+<p>大意是，python最初将将一些对象设置为全局的，这些全局的对象状态的改变客观要求全局锁的存在。比如，小数字，短字符串等，这些常驻的对象的状态是全局的，而python的对象管理主要是靠引用计数，python在执行代码时到处都是引用计数增减的操作，所以全局锁使得大家的引用计数修改不冲突。当然原理上讲，这些对象可以分别建立一个锁，访问这些对象时再获取锁，修改后释放锁。确实也曾经有个叫Greg Stein的家伙这么做过，但是最终发现由于python的引用计数增减如此频繁，导致锁的获取和释放频繁，最终反而使得python的整体运行效率反而降低，尤其对单线程的代码，凭空增添了极其繁多的执行代码。另外一点比较尴尬的是，许多第三方组件利用了python中GIL，将这些第三方组件进行兼容性修改是一件庞大的工程，更尴尬的是，全世界有无数开源爱好者在写第三方组件，他们写的速度比移植的速度快。。。。。<br>（个人想法：如果将那些全局常驻对象以及不必要的全局状态都按线程私有化，是不是可以稍微细粒度而又不失效率地并行呢？）</p>
+<p>在我看来python的GIL利大于弊，也没有必要删掉。很重要的一点，GIL让入门用户也可以大胆地写多线程代码而不用太多地去考虑竞争问题，大大地降低了使用门槛（所以如果自己写的并发python程序无bug运行，不一定是程序逻辑上真的无bug，而是可能有GIL在默默守护），可能很多人写python程序没有竞争问题，就喜欢上了python。而且GIL这种做法对性能的损伤并非想象中绝对串行化那么严重，因为我们很少在一个线程中完全执行计算密集型的操作，如果有类似访问文件，等待信号的阻塞操作，python的多线程的表现和无锁原生线程的表现相差无几，所以实际中python多线程的使用体验一般比想象中的串行化要好的多的多。如果实在想用并发的性能，那python也提供多进程方法multiprocessing.Process，而且它的参数列表与threading.Thread 十分相似，这可能也是python设计者故意为之，以方便使用者切换。</p>
+<p>从更大的视角看，GIL锁不是python编写者的技术有限造成的，而是并行架构客观存在的需求，只是python的设计者将其以线程为锁粒度进行了实现，即以GIL的形式存在，让我们感觉稍有不适。正像Greg Stein做的一样，也可以将锁的粒度微观化，但是这样做要求锁的获取和释放效率极高才能够使程序的性能不受明显影响。<br>C语言就没有锁了吗，或者操作系统原生线程的背后就没有锁了吗？其实也是有的。如上所说，锁的存在是并行架构的客观要求，否则系统会不稳定。C语言（也可以说汇编语言）背后的锁在哪里？ 是最底层的CPU的总线以及多核一致性协议。在以前的CPU中，多个线程同时往内存写数据，先执行的那个线程会获得总线使用权，而其它线程只能等待，即使其它线程写的是不同的内存位置。先进的CPU有多个核心，每个核心都配有L1、L2缓存用于存储最近使用的内存，这样，如果对应的内存位置存在于缓存中的话，多个核对不同位置的内存写操作可以同时发生在缓存中，但是如果是往相同位置写，多核心的一致性协议还是会保证本质上不可能同时对一个内存位置进行改写。这些都是CPU自带的机制，而无关用户上层如何编码。在这些‘锁’起作用的时候，我们所谓的多线程本质就是串行了。所以，CPU的‘锁’之于C语言、汇编，就是GIL之于python，不过CPU的锁是极细粒度的。 GIL让用户感觉诧异是因为python世界的线程和C世界的线程共用了系统原生线程而拥有不同的表现形式，而且GIL将线程作为锁单位使得线程彻底串行化。相比之下CPU的锁则是躲在深处，且由于硬件效率高较难察觉。无论如何，只要是有并发能力的系统，背后总有一把上帝模式的锁在工作，否则系统可靠性无从谈起。</p>
 
       
     </div>
@@ -427,8 +444,8 @@
         <div class="post-nav">
           <div class="post-nav-next post-nav-item">
             
-              <a href="/2018/12/11/notes-on-python-2.html" rel="next" title="Python笔记-2">
-                <i class="fa fa-chevron-left"></i> Python笔记-2
+              <a href="/2018/12/11/notes-on-python-2.html" rel="next" title="说Python -- 变量与赋值">
+                <i class="fa fa-chevron-left"></i> 说Python -- 变量与赋值
               </a>
             
           </div>
@@ -487,17 +504,8 @@
       
 
       
-        <ul class="sidebar-nav motion-element">
-          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
-            Table of Contents
-          </li>
-          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
-            Overview
-          </li>
-        </ul>
-      
 
-      <section class="site-overview-wrap sidebar-panel">
+      <section class="site-overview-wrap sidebar-panel sidebar-panel-active">
         <div class="site-overview">
           <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
             
@@ -573,22 +581,6 @@
         </div>
       </section>
 
-      
-      <!--noindex-->
-        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
-          <div class="post-toc">
-
-            
-              
-            
-
-            
-              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#2-多线程与多进程"><span class="nav-number">1.</span> <span class="nav-text">2:  多线程与多进程</span></a></li></ol></div>
-            
-
-          </div>
-        </section>
-      <!--/noindex-->
       
 
       
