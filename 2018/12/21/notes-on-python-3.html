@@ -111,7 +111,7 @@
 <meta property="og:site_name" content="CR42Y M0">
 <meta property="og:description" content="python的多线程利用的就是操作系统原生线程，但是python的解释器存在着全局锁GIL (Global Interpreter Lock)，它要求在任一时刻有且只有一个线程有权利执行解释python代码的任务。换句话说，GIL使得python的多线程在执行python代码时其实是串行的而不是并行，如果之前是写C语言的话，肯定会觉得这种操作和称呼太具有欺骗性了，明明串行的东西以多线程的概念提供给">
 <meta property="og:locale" content="ASM, C/C++, python">
-<meta property="og:updated_time" content="2018-12-21T17:59:18.637Z">
+<meta property="og:updated_time" content="2019-03-16T08:20:46.383Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="说Python -- 多线程与GIL">
 <meta name="twitter:description" content="python的多线程利用的就是操作系统原生线程，但是python的解释器存在着全局锁GIL (Global Interpreter Lock)，它要求在任一时刻有且只有一个线程有权利执行解释python代码的任务。换句话说，GIL使得python的多线程在执行python代码时其实是串行的而不是并行，如果之前是写C语言的话，肯定会觉得这种操作和称呼太具有欺骗性了，明明串行的东西以多线程的概念提供给">
@@ -411,9 +411,10 @@
 <p>And I doubt that it can even be done in finite time, because the same problem<br>exists for 3rd party extensions. <strong>It is likely that 3rd party extensions are<br>being written at a faster rate than you can convert them to store all their<br>global state in the interpreter state.</strong></p>
 <p>And finally, once you have multiple interpreters not sharing any state, what<br>have you gained over running each interpreter in a separate process?</p>
 </blockquote>
-<p>大意是，python最初将将一些对象设置为全局的，这些全局的对象状态的改变客观要求全局锁的存在。比如，小数字，短字符串等，这些常驻的对象的状态是全局的，而python的对象管理主要是靠引用计数，python在执行代码时到处都是引用计数增减的操作，所以全局锁使得大家的引用计数修改不冲突。当然原理上讲，这些对象可以分别建立一个锁，访问这些对象时再获取锁，修改后释放锁。确实也曾经有个叫Greg Stein的家伙这么做过，但是最终发现由于python的引用计数增减如此频繁，导致锁的获取和释放频繁，最终反而使得python的整体运行效率反而降低，尤其对单线程的代码，凭空增添了极其繁多的执行代码。另外一点比较尴尬的是，许多第三方组件利用了python中GIL，将这些第三方组件进行兼容性修改是一件庞大的工程，更尴尬的是，全世界有无数开源爱好者在写第三方组件，他们写的速度比移植的速度快。。。。。<br>（个人想法：如果将那些全局常驻对象以及不必要的全局状态都按线程私有化，是不是可以稍微细粒度而又不失效率地并行呢？）</p>
-<p>在我看来python的GIL利大于弊，也没有必要删掉。很重要的一点，GIL让入门用户也可以大胆地写多线程代码而不用太多地去考虑竞争问题，大大地降低了使用门槛（所以如果自己写的并发python程序无bug运行，不一定是程序逻辑上真的无bug，而是可能有GIL在默默守护），可能很多人写python程序没有竞争问题，就喜欢上了python。而且GIL这种做法对性能的损伤并非想象中绝对串行化那么严重，因为我们很少在一个线程中完全执行计算密集型的操作，如果有类似访问文件，等待信号的阻塞操作，python的多线程的表现和无锁原生线程的表现相差无几，所以实际中python多线程的使用体验一般比想象中的串行化要好的多的多。如果实在想用并发的性能，那python也提供多进程方法multiprocessing.Process，而且它的参数列表与threading.Thread 十分相似，这可能也是python设计者故意为之，以方便使用者切换。</p>
-<p>从更大的视角看，GIL锁不是python编写者的技术有限造成的，而是并行架构客观存在的需求，只是python的设计者将其以线程为锁粒度进行了实现，即以GIL的形式存在，让我们感觉稍有不适。正像Greg Stein做的一样，也可以将锁的粒度微观化，但是这样做要求锁的获取和释放效率极高才能够使程序的性能不受明显影响。<br>C语言就没有锁了吗，或者操作系统原生线程的背后就没有锁了吗？其实也是有的。如上所说，锁的存在是并行架构的客观要求，否则系统会不稳定。C语言（也可以说汇编语言）背后的锁在哪里？ 是最底层的CPU的总线以及多核一致性协议。在以前的CPU中，多个线程同时往内存写数据，先执行的那个线程会获得总线使用权，而其它线程只能等待，即使其它线程写的是不同的内存位置。先进的CPU有多个核心，每个核心都配有L1、L2缓存用于存储最近使用的内存，这样，如果对应的内存位置存在于缓存中的话，多个核对不同位置的内存写操作可以同时发生在缓存中，但是如果是往相同位置写，多核心的一致性协议还是会保证本质上不可能同时对一个内存位置进行改写。这些都是CPU自带的机制，而无关用户上层如何编码。在这些‘锁’起作用的时候，我们所谓的多线程本质就是串行了。所以，CPU的‘锁’之于C语言、汇编，就是GIL之于python，不过CPU的锁是极细粒度的。 GIL让用户感觉诧异是因为python世界的线程和C世界的线程共用了系统原生线程而拥有不同的表现形式，而且GIL将线程作为锁单位使得线程彻底串行化。相比之下CPU的锁则是躲在深处，且由于硬件效率高较难察觉。无论如何，只要是有并发能力的系统，背后总有一把上帝模式的锁在工作，否则系统可靠性无从谈起。</p>
+<p>大意是，python最初将将一些对象设置为全局的，这些全局的对象状态的改变客观要求全局锁的存在。比如，小数字，短字符串等，这些常驻的对象的状态是全局的，而python的对象管理主要是靠引用计数，python在执行代码时到处都是引用计数增减的操作，所以全局锁使得大家的引用计数修改不冲突。当然原理上讲，这些对象可以分别建立一个锁，访问这些对象时再获取锁，修改后释放锁。确实也曾经有个叫Greg Stein的家伙这么做过，但是最终发现由于python的引用计数增减如此频繁，导致锁的获取和释放频繁，最终反而使得python的整体运行效率反而降低，尤其对单线程的代码，凭空增添了极其繁多的执行代码。另外一点比较尴尬的是，许多第三方组件利用了python中GIL，将这些第三方组件进行兼容性修改是一件庞大的工程，更尴尬的是，全世界有无数开源爱好者在写第三方组件，他们写的速度比移植的速度快。。。。。<br>（个人想法：如果将那些全局常驻对象以及不必要的全局状态都按线程私有化，是不是可以稍微细粒度而又不失效率地并行呢？ 但是这样可能会有一些兼容性总是，比如 is None的判断会出错。。。  总之，历史兼容问题有时候会成为技术进步的瓶颈）</p>
+<p>在我看来python的GIL利大于弊，也没有必要删掉。很重要的一点，GIL让入门用户也可以大胆地写多线程代码而不用太多地去考虑竞争问题，大大地降低了使用门槛（所以如果自己写的并发python程序无bug运行，不一定是程序逻辑上真的无bug，而是可能有GIL在默默守护），可能很多人写python程序没有竞争问题，就喜欢上了python。而且GIL这种做法对性能的损伤并非想象中绝对串行化那么严重，因为我们很少在一个线程中完全执行计算密集型的操作，如果有类似访问文件，等待信号的阻塞操作，python的多线程的表现和无锁原生线程的表现相差无几，所以实际中python多线程的使用体验一般比想象中的串行化要好的多的多。如果实在想用并发的性能，那python也提供多进程方法multiprocessing.Process，而且它的参数列表与threading.Thread 十分相似，这当然也是python设计者特意为之，以方便使用者切换。</p>
+<p>从更大视角看，GIL是并行编程架构客观存在的需求，只是python的设计者将其以线程为锁粒度进行了实现(  可以理解为python作者是个彻底的 并行编程pessimistic model的实践者？  )，让我们感觉稍有不适，或者说大多人觉得可以再优化一下。正像Greg Stein做的一样，也可以将锁的粒度微观化，但是这样做要求锁的获取和释放效率极高才能够使程序的性能不受明显影响，而且更大的是历史兼容性问题。GIL让用户感觉诧异是因为python世界的线程和C世界的线程共用了操作系统原生线程而拥有不同的表现形式，GIL将线程作为锁单位使得线程彻底串行化，用户觉得这太鲁莽。当然我想如果Guido重写python的话，他应该会充分考虑到CPU的发展现状，最大化地利用好CPU的并行能力。</p>
+<p>锁是具有并行处理能力系统或语言的必备特性。为了保证多任务的正确执行，C语言也有锁，比如EnterCriticalSection和 pthread_mutex_lock， 只是我们仅将锁用在某段代码片段而不是整个线程。除了编程者界面使用的锁，操作系统本身也有锁。如上所说，锁的存在是并行架构的客观要求，否则系统会不稳定。操作系统的锁在CPU。现在的CPU基本都有多个核心，每个核心都配有L1、L2缓存用于存储最近使用的内存，这样，如果对应的内存位置存在于缓存中的话，多个核对不同位置的内存写操作可以认为能够同时发生在缓存中，但是如果是往相同位置写，多核心的一致性协议还是会保证本质上不可能同时对一个内存位置进行改写。这些都是CPU自带的机制，而无关用户上层如何编码。更复杂的，在SMP架构中，有一系列机制锁在确保一致性。当这些‘锁’起作用的时候，我们所谓的多线程其实就是退化到串行了。所以，CPU的‘锁’之于操作系统，关键代码段之于C语言，就是GIL之于python，不过前两种锁的粒度更细。 所以编程语言和编程模式的研究者的终极目标也是如何将编程者加锁的资源消耗尽量降到硬件水平，以及锁的使用不会引入死锁等bug， 现在有的编程模式极好地兼顾了这些方面，比如  software transactional memory编程模式，但是还没有大规模实用，只在数据库中有普遍应用。</p>
 
       
     </div>
@@ -595,7 +596,7 @@
 
     <footer id="footer" class="footer">
       <div class="footer-inner">
-        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
   <span class="with-love">
     <i class="fa fa-user"></i>
   </span>

@@ -2,6 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://yoursite.com/2018/12/21/notes-on-python-3.html</loc>
+    
+    <lastmod>2019-03-16T08:20:46.383Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://yoursite.com/2018/12/11/notes-on-python-2.html</loc>
     
     <lastmod>2018-12-21T18:00:01.750Z</lastmod>
@@ -12,13 +19,6 @@
     <loc>http://yoursite.com/2018/11/28/notes-on-python-1.html</loc>
     
     <lastmod>2018-12-21T17:59:54.523Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://yoursite.com/2018/12/21/notes-on-python-3.html</loc>
-    
-    <lastmod>2018-12-21T17:59:18.637Z</lastmod>
     
   </url>
   
