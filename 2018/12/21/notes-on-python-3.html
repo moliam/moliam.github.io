@@ -106,14 +106,14 @@
 <meta name="description" content="python的多线程利用的就是操作系统原生线程，但是python的解释器存在着全局锁GIL (Global Interpreter Lock)，它要求在任一时刻有且只有一个线程有权利执行解释python代码的任务。换句话说，GIL使得python的多线程在执行python代码时其实是串行的而不是并行，如果之前是写C语言的话，肯定会觉得这种操作和称呼太具有欺骗性了，明明串行的东西以多线程的概念提供给">
 <meta name="keywords" content="Notes-On-Python">
 <meta property="og:type" content="article">
-<meta property="og:title" content="说Python -- 多线程与GIL">
+<meta property="og:title" content="说Python — GIL与并行">
 <meta property="og:url" content="http://yoursite.com/2018/12/21/notes-on-python-3.html">
 <meta property="og:site_name" content="CR42Y M0">
 <meta property="og:description" content="python的多线程利用的就是操作系统原生线程，但是python的解释器存在着全局锁GIL (Global Interpreter Lock)，它要求在任一时刻有且只有一个线程有权利执行解释python代码的任务。换句话说，GIL使得python的多线程在执行python代码时其实是串行的而不是并行，如果之前是写C语言的话，肯定会觉得这种操作和称呼太具有欺骗性了，明明串行的东西以多线程的概念提供给">
 <meta property="og:locale" content="ASM, C/C++, python">
-<meta property="og:updated_time" content="2019-03-16T08:20:46.383Z">
+<meta property="og:updated_time" content="2019-03-16T08:28:38.251Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="说Python -- 多线程与GIL">
+<meta name="twitter:title" content="说Python — GIL与并行">
 <meta name="twitter:description" content="python的多线程利用的就是操作系统原生线程，但是python的解释器存在着全局锁GIL (Global Interpreter Lock)，它要求在任一时刻有且只有一个线程有权利执行解释python代码的任务。换句话说，GIL使得python的多线程在执行python代码时其实是串行的而不是并行，如果之前是写C语言的话，肯定会觉得这种操作和称呼太具有欺骗性了，明明串行的东西以多线程的概念提供给">
 
 
@@ -150,7 +150,7 @@
 
 
 
-  <title>说Python -- 多线程与GIL | CR42Y M0</title>
+  <title>说Python — GIL与并行 | CR42Y M0</title>
   
 
 
@@ -316,7 +316,7 @@
 
         
         
-          <h1 class="post-title" itemprop="name headline">说Python -- 多线程与GIL</h1>
+          <h1 class="post-title" itemprop="name headline">说Python — GIL与并行</h1>
         
 
         <div class="post-meta">
@@ -511,7 +511,7 @@
           <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
             
               <p class="site-author-name" itemprop="name">Mo, Li</p>
-              <p class="site-description motion-element" itemprop="description">OS / Programming / NN / Math</p>
+              <p class="site-description motion-element" itemprop="description">OS / Machine Learning</p>
           </div>
 
           <nav class="site-state motion-element">
