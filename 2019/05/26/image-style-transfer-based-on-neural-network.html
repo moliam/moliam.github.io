@@ -126,7 +126,7 @@
 <meta property="og:image" content="http://yoursite.com/2019/05/26/image-style-transfer-based-on-neural-network/arbitrary_style_transfer.png">
 <meta property="og:image" content="http://yoursite.com/2019/05/26/image-style-transfer-based-on-neural-network/huang_result.png">
 <meta property="og:image" content="http://yoursite.com/2019/05/26/image-style-transfer-based-on-neural-network/cycle_gan.png">
-<meta property="og:updated_time" content="2019-06-08T05:45:00.046Z">
+<meta property="og:updated_time" content="2019-06-08T05:48:06.818Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="基于神经网络的图像风格转移小结">
 <meta name="twitter:description" content="Foreword将A图片的风格转移到B图片上，指的是将A图片的抽象艺术风格（如线条、色彩等等）和B图片的内容框架合成为一幅图。自然地，A图片称为风格图，而B图片就称为内容图。就像这样：  左侧图作为风格， 右侧图作为内容，中间合成图。 （上图是我用Gatys迭代法得到的结果）。 最近做了一段时间风格转移的文献调研，故写此小结以顺思路。图片风格转移在传统图像处理中有不少研究，本文只总结基于神经网络的">
@@ -512,9 +512,9 @@
 <p>一般GAN网络的流程是源样本集$X​$ 结过生成器$G​$生成假的目标集$Y_{fake}​$ ，之后接一个判别器$D​$ 用于鉴别真假目标集 $Y​$ 和 $Y_{fake}​$， 经过生成器与判别器多轮博弈训练，达到理想平衡的结果是$G​$ 生成的$Y_{fake}​$可以以假乱真。但这样的网络结构有模式单一化的风险，即任何来自$X​$的样本都生成相同的$Y_{fake}​$， 虽然$Y_{fake}​$ 可以以假乱真，但没有了我们想要的多样性，我们希望根据不同的$x \in X​$， 生成的$Y_{fake}​$是不同的。基于此，Zhu提出了cycle-gan的架构。如下图：</p>
 <p><img src="/2019/05/26/image-style-transfer-based-on-neural-network/cycle_gan.png" alt="cycle_gan"></p>
 <p>图中，$G$和 $F$是生成器，$D_x$与$D_y$ 是判别器。可以看到，在cycle-gan中，有两个生成器、两个判别器。它们相互作用保证生成的图片以假乱真，且保证生成样本的多样性。架构中有两个转换循环：</p>
-<p>1） $X$ -&gt; $Y_{fake}$-&gt; $X_{fake}$</p>
-<p>2)    $Y​$-&gt;$X_{fake}​$-&gt;$Y_{fake}​$</p>
-<p>为了保证多样性，架构中加入了consistent-loss（如mse loss），比如一个样本$x \in X$， 经过循环1后返回得到 $x_{fake}$ ， 应该有 $x == x_{fake}$。 这保证了样本级别的多样性。</p>
+<p>1） $X_{real}$ -&gt; $Y_{fake}$-&gt; $X_{fake}$</p>
+<p>2)    $Y_{real}$-&gt;$X_{fake}$-&gt;$Y_{fake}$</p>
+<p>为了保证多样性，架构中加入了consistent-loss（如mse loss），比如一个样本$x \in X​$， 经过循环1后返回得到 $x_{fake}​$ ， 应该有 $x == x_{fake}​$。 这保证了样本级别的多样性。</p>
 <p>cycle-gan能够达到的效果是将一个集合$X​$中的样本变换后达到与另外一个集合$Y​$真假难辨的程度。所以它自然可以风格转移（但其用途远不止风格转移），比如我们将一些普通照片放在$X​$，将梵高的作品集放入$Y​$中，则最终达到的效果是$X​$经过变换后的$Y_{fake}​$ 让判别器无法分辨是否是来自$Y​$集合， 这样，$Y_{fake}​$自然就是具有梵高风格的图画。  cycle-gan作风格转移的妙处在于它无需对风格进行量化，一切都由GAN网络去学习，比较“暴力”。</p>
 
       
