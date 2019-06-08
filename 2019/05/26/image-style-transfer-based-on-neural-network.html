@@ -1,0 +1,1271 @@
+<!DOCTYPE html>
+
+
+
+
+<html class="theme-next pisces" lang="ASM, C/C++, python">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css">
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="Programming, Math, Machine Learning">
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="Foreword将A图片的风格转移到B图片上，指的是将A图片的抽象艺术风格（如线条、色彩等等）和B图片的内容框架合成为一幅图。自然地，A图片称为风格图，而B图片就称为内容图。就像这样：  左侧图作为风格， 右侧图作为内容，中间合成图。 （上图是我用Gatys迭代法得到的结果）。 最近做了一段时间风格转移的文献调研，故写此小结以顺思路。图片风格转移在传统图像处理中有不少研究，本文只总结基于神经网络的">
+<meta property="og:type" content="article">
+<meta property="og:title" content="基于神经网络的图像风格转移小结">
+<meta property="og:url" content="http://yoursite.com/2019/05/26/image-style-transfer-based-on-neural-network.html">
+<meta property="og:site_name" content="CR42Y M0">
+<meta property="og:description" content="Foreword将A图片的风格转移到B图片上，指的是将A图片的抽象艺术风格（如线条、色彩等等）和B图片的内容框架合成为一幅图。自然地，A图片称为风格图，而B图片就称为内容图。就像这样：  左侧图作为风格， 右侧图作为内容，中间合成图。 （上图是我用Gatys迭代法得到的结果）。 最近做了一段时间风格转移的文献调研，故写此小结以顺思路。图片风格转移在传统图像处理中有不少研究，本文只总结基于神经网络的">
+<meta property="og:locale" content="ASM, C/C++, python">
+<meta property="og:image" content="http://yoursite.com/2019/05/26/image-style-transfer-based-on-neural-network/example.png">
+<meta property="og:image" content="http://yoursite.com/2019/05/26/image-style-transfer-based-on-neural-network/gatys_reconstruction.png">
+<meta property="og:image" content="http://yoursite.com/2019/05/26/image-style-transfer-based-on-neural-network/gatys.png">
+<meta property="og:image" content="http://yoursite.com/2019/05/26/image-style-transfer-based-on-neural-network/perceptual_loss.png">
+<meta property="og:image" content="http://yoursite.com/2019/05/26/image-style-transfer-based-on-neural-network/perceptual_result.png">
+<meta property="og:image" content="http://yoursite.com/2019/05/26/image-style-transfer-based-on-neural-network/BN_algorithm.png">
+<meta property="og:image" content="http://yoursite.com/2019/05/26/image-style-transfer-based-on-neural-network/batch_instance.png">
+<meta property="og:image" content="http://yoursite.com/2019/05/26/image-style-transfer-based-on-neural-network/BN_IN_Compare.png">
+<meta property="og:image" content="http://yoursite.com/2019/05/26/image-style-transfer-based-on-neural-network/CIN.png">
+<meta property="og:image" content="http://yoursite.com/2019/05/26/image-style-transfer-based-on-neural-network/CIN_result.png">
+<meta property="og:image" content="http://yoursite.com/2019/05/26/image-style-transfer-based-on-neural-network/mu_sigma_lstyle.png">
+<meta property="og:image" content="http://yoursite.com/2019/05/26/image-style-transfer-based-on-neural-network/yhli_result.png">
+<meta property="og:image" content="http://yoursite.com/2019/05/26/image-style-transfer-based-on-neural-network/IN_effect_on_style_loss.png">
+<meta property="og:image" content="http://yoursite.com/2019/05/26/image-style-transfer-based-on-neural-network/arbitrary_style_transfer.png">
+<meta property="og:image" content="http://yoursite.com/2019/05/26/image-style-transfer-based-on-neural-network/huang_result.png">
+<meta property="og:image" content="http://yoursite.com/2019/05/26/image-style-transfer-based-on-neural-network/cycle_gan.png">
+<meta property="og:updated_time" content="2019-06-08T05:45:00.046Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="基于神经网络的图像风格转移小结">
+<meta name="twitter:description" content="Foreword将A图片的风格转移到B图片上，指的是将A图片的抽象艺术风格（如线条、色彩等等）和B图片的内容框架合成为一幅图。自然地，A图片称为风格图，而B图片就称为内容图。就像这样：  左侧图作为风格， 右侧图作为内容，中间合成图。 （上图是我用Gatys迭代法得到的结果）。 最近做了一段时间风格转移的文献调研，故写此小结以顺思路。图片风格转移在传统图像处理中有不少研究，本文只总结基于神经网络的">
+<meta name="twitter:image" content="http://yoursite.com/2019/05/26/image-style-transfer-based-on-neural-network/example.png">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Pisces',
+    version: '5.1.4',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":false,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2019/05/26/image-style-transfer-based-on-neural-network.html">
+
+
+
+
+
+  <title>基于神经网络的图像风格转移小结 | CR42Y M0</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope="" itemtype="http://schema.org/WebPage" lang="ASM, C/C++, python">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope="" itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">CR42Y M0</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <p class="site-subtitle">some ideas. Tt.</p>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br>
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br>
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br>
+            
+            Archives
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+              <i class="menu-item-icon fa fa-search fa-fw"></i> <br>
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup search-popup local-search-popup">
+  <div class="local-search-header clearfix">
+    <span class="search-icon">
+      <i class="fa fa-search"></i>
+    </span>
+    <span class="popup-btn-close">
+      <i class="fa fa-times-circle"></i>
+    </span>
+    <div class="local-search-input-wrapper">
+      <input autocomplete="off" placeholder="Searching..." spellcheck="false" type="text" id="local-search-input">
+    </div>
+  </div>
+  <div id="local-search-result"></div>
+</div>
+
+
+
+    </div>
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope="" itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/05/26/image-style-transfer-based-on-neural-network.html">
+
+    <span hidden itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Mo, Li">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope="" itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="CR42Y M0">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">基于神经网络的图像风格转移小结</h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2019-05-26T10:24:01+08:00">
+                2019-05-26
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope="" itemtype="http://schema.org/Thing">
+                  <a href="/categories/Machine-Learning/" itemprop="url" rel="index">
+                    <span itemprop="name">Machine Learning</span>
+                  </a>
+                </span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="page-pv"><i class="fa fa-file-o"></i>
+            <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>Read
+            </span>
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="Foreword"><a href="#Foreword" class="headerlink" title="Foreword"></a><em>Foreword</em></h2><p>将A图片的风格转移到B图片上，指的是将A图片的抽象艺术风格（如线条、色彩等等）和B图片的内容框架合成为一幅图。自然地，A图片称为风格图，而B图片就称为内容图。就像这样：</p>
+<p><img src="/2019/05/26/image-style-transfer-based-on-neural-network/example.png" alt="example"></p>
+<p>左侧图作为风格， 右侧图作为内容，中间合成图。 （上图是我用Gatys迭代法得到的结果）。</p>
+<p>最近做了一段时间风格转移的文献调研，故写此小结以顺思路。图片风格转移在传统图像处理中有不少研究，本文只总结基于神经网络的方法。从发展阶段简单回顾风格转移的技术演进及各种技术的关联。最后Extra章也是一种风格转移方法 ，但它的应用场景有所不同，用于图片集合到图片集合的风格转移。</p>
+<h2 id="Stage1：iterative-image-style-transfer-IST"><a href="#Stage1：iterative-image-style-transfer-IST" class="headerlink" title="Stage1：iterative image style transfer (IST)"></a><em>Stage1：iterative image style transfer (IST)</em></h2><p>文章：</p>
+<blockquote>
+<p>Image style transfer using convolutional neural networks，  Gatys etc.</p>
+</blockquote>
+<p>一句话总结：这篇文章为风格转移提供了量化标度，提出使用 Gram矩阵来量化图片的风格。并提出了基于VGG网络的迭代式图片合成方法。图片生成质量较高。</p>
+<p>将一幅图片的风格转移到另一幅画上，首先要解决的问题自然是如何提取风格？<em>（也有不需要量化风格的，下面Extra章会讲到）</em>Gatys 在这篇文章中提出用feature map 的Gram矩阵来量化一幅图片的风格。具体来说 ，一幅图片结过网络后，在第$k$  层有 $M$ 个feature map $F_{i}^{k}, 0&lt;i&lt;M$， 每个feature map的维度为 $H\times W$， 那么第 $k$层的Gram矩阵值为：</p>
+<p>$G_{ij}^{k} = \dfrac{1}{H^{2}W^{2}} \sum( F_{i}^{k} \cdot F_{j}^{k})​$， 其中  $\sum(X) = \sum X_{ij}​$</p>
+<p>，即第$k$ 层的Gram矩阵维度为 $M \times M$ 的矩阵，  其坐标 $(i, j )$处的元素值为 $F_{i}^{k}$ 与  $F_{i}^{k}$ <strong>点乘后元素求和再归一化</strong>得来. 可以笼统认为Gram矩阵是同层的feature map之间的相似关系。</p>
+<p>这个量化方法到底能多大程度上提取风格呢？  一种验证的途径是根据一张图$x$的Gram矩阵 $G$， 如果能重建出具有风格$x$的图片，则说明$G$ 对风格提取有一定作用（但不是充要条件，最终还是要看用来最后的合成过程中是否能指导图像的生成），这种重建图像的方法其实也是Gatys最后用于生成合成图片的方法。不管怎么样，先实验起来吧。 </p>
+<p>验证实验是基于VGG网络进行的，VGG网络在图片分类任务中已经取得了公认的成果，所以一般认为其各个输出层的feature map 应该是较好地提取了图像的语义。VGG网络的过程可以抽象表示为函数  $\textbf{vgg}(x) = y​$， $x​$为输入， $y​$为输出，$x​$可以是所有层的输出，也可以是其子集。将$y​$进一步根据上面的定义运算得到Gram矩阵的VGG用$\textbf{vgg_G}​$表示。Gatys提出了以迭代方式梯度下降的方法根据VGG网络输出重建图片的方法，即：如果需要两幅图相同，需要两幅图经过VGG网络后的输出也相同。以$\textbf{vgg}​$为例，步骤如下：</p>
+<p>先以随机值生成图像 $x’$，它经过网络输出为 $y’$ 。目标图片为$x$, 经过风格的输出为$y$。 待重建的目标图片$x$与 $x’$ 的距离以 $L_{vgg}(y, y’)$来表示。那么以</p>
+<p>$x’ = x’ - \eta * \dfrac{\partial L_{vgg}(y, y’)}{\partial y’}$</p>
+<p>的方式对$x’​$进行更新，其实就是以$\textbf{vgg}​$  函数作为指引逼近目标 $x​$的过程，最终稳定后得到的就是重建的图像。注意在迭代过程中网络函数$\textbf{vgg}​$不变，即VGG网络的模型参数保持不变。</p>
+<p>Gatys分别使用了$\textbf{vgg}$ 和 $\textbf{vgg_G}$对图片进行了重建。分别使用VGG网络的第1到第5层的输出指引重建，结果如下，上面星空图是使用$\textbf{vgg_G}$进行实验， 下面建筑图使用 $\textbf{vgg}$进行重建：</p>
+<p><img src="/2019/05/26/image-style-transfer-based-on-neural-network/gatys_reconstruction.png" alt="gatys_reconstruction"></p>
+<p>可以看出，在下面一排用$\textbf{vgg}​$ 进行重建的实验组中，使用的层越深，图像重建的越抽象，但大体框架保留着。这也是大家对深度学习和VGG网络的一贯理解。而有趣的是，在上面一排用$\textbf{vgg_G}​$的实验组中，重建的图像风格相似，但内容框架已经完全错乱了，所以确实可以理解为它更侧重于保留风格而不注重框架。</p>
+<p>我个人猜想Gram矩阵的想法是实验驱动的。虽然不一定是对风格最好的量化（毕竟风格是很主观的东西，也很难有最优答案），但Gatys提出的量度还是开创性且可用的。</p>
+<p>有了上面的实验，自然就会有这样一个想法：如果既使用$\textbf{vgg_G}​$将$x’​$ 风格约束到一幅图A，同时又使用$\textbf{vgg}​$将$x’​$  内容框架约束到另一幅图B，那重建出来的不就是“合成了” A与B吗？ 下面的图就是描述的这个过程：</p>
+<p><img src="/2019/05/26/image-style-transfer-based-on-neural-network/gatys.png" alt="gatys"></p>
+<p>上图乍看挺复杂，其实思想很简单。就是把$\textbf{vgg}$或者 $\textbf{vgg_G}$的距离整合，可以看到图中衡量距离的loss是将content与 style按比例系数$\alpha$ 和 $\beta$ 整合到一起了，所以这两个系数也会决定最终的生成图片是更接近风格图片还是更接近内容图片。另外Gayts还发现由于这里的变量只有一个$x’$ ，上面的梯度下降迭代可以用L-BFGS迭代来替换以更快地找到最优点。</p>
+<p>Gatys的工作提出了量化图像风格的方法，并迭代地逼近一幅满意的结果图。这种方法的优点是生成的图质量好，缺点是速度慢，每次要合成时都要迭代运算多次。</p>
+<p>对于Gram矩阵能引导风格转移的内在机理，Yanghao Li等人进行了研究，在下面 <strong><em>Stage4.2</em></strong> 中会叙及。</p>
+<h2 id="Stage2-fast-IST"><a href="#Stage2-fast-IST" class="headerlink" title="Stage2:   fast IST"></a><em>Stage2:   fast IST</em></h2><p>如上述，Gatys的方法生成图片质量高，但在速度上不尽人意。我们知道一般神经网络都是先训练好，之后使用时只进行一次前馈推理即可，即 feed-forward one pass，而推理的速度是很快的，所以很自然地，神经网络的研究者们马上对这种方案的可行性进行了研究，并得到了令人满意的结果 。以Johnson的文章作为代表进行总结。</p>
+<p>文章：</p>
+<blockquote>
+<p>Johnson, etc.  Perceptual Losses for Real-Time Style Transfer and Super-Resolution</p>
+</blockquote>
+<p><img src="/2019/05/26/image-style-transfer-based-on-neural-network/perceptual_loss.png" alt="perceptual_loss"></p>
+<p>上图是来自原文的截图。  首先，他们将使用VGG 输出作为衡量距离的loss起了个正式名字，叫perceptual loss。其实在Gatys的方法中用的正是这种loss，只不过没有起名字。但后来的研究者就称这种loss叫perceptual loss。 </p>
+<p>这篇文章要完成的任务很明确，给定一幅图输入图$x​$，网络一次前馈就能给出具有 $y_s​$风格的$x​$ 。 比较重要的一点是，这里网络的$y_s​$是固定的，也就是说，一旦网络训练好，无论输入$x​$是什么，输出的所有图片都会被施以同一种风格变换。</p>
+<p>从架构图上看以看到，训练时输入图$x$经过一个变换网络得到一个$\hat{y}$。 这里的变换网络是一个ResNet，变换网络的结构在这里并不重要，所以这里没有画出。后面通过两个loss来约束 $\hat{y}$ ：与风格图片$y_{s}$之间通过$\textbf{vgg_G}$ 的loss，与内容图片$y_c$通过 $\textbf{vgg}$ 后的loss。这里要下说为什么会有$y_c$ 的名字。在原文中，上面的架构图其实可以作两个用途，一个是风格转移，一个是单帧图片超分辨。用作风格转移的时，训练时$y_c$就是$x$本身。而在作训练超分辨功能的时， $y_c$ 是$x$ 的高分辨图label，且此时$y_s​$不起作用。 </p>
+<p>所以，在大量的$x​$ 训练后，变换网络将学习到如何将$y_s​$ 的风格作用到一幅输入图上。这个网络训练后的效果以及与Gatys（图中[10]为Gatys方法, ours为 perceptual方法）的比较如下图：</p>
+<p><img src="/2019/05/26/image-style-transfer-based-on-neural-network/perceptual_result.png" alt="perceptual_result"></p>
+<p>总结一下这一阶段的研究，就是使用前馈的方式大大提升了风格转换的速度，但是引入了一个妥协：一个网络只能变换一种风格。很自然的问题，为什么不设计成 $x$ 和 $y_s$都是可变的， 直接前馈输出具有 $y_s$风格的 $x$ 的网络?   我觉得这种想法一定有人尝试过，但是这样的作法要求网络拟合的东西太多(不同的内容，不同的风格本质是对应的数据分布都不一样，所以要求网络在不同的数据分布上都得到好结果，也许这根本就不符合神经网络的理论模型），导致网络无法训练成功。但下面<strong><em>Stage4</em></strong>会讲到将$x$和 $y_s​$都可变的这一目标最终被完成了，得益于加入了一些人工的先验知识。</p>
+<h2 id="Stage3-fast-high-quality-IST"><a href="#Stage3-fast-high-quality-IST" class="headerlink" title="Stage3:  fast, high quality IST"></a><em>Stage3:  fast, high quality IST</em></h2><p><strong><em>Stage2</em></strong>的工作将风格转移的迭代工作方式变为了前馈生成式，速度得到极大改善。但这种方法与Gatys迭代法产生的结果图的质量上有较大差距，毕竟Gatys方法可以按照loss函数实时逼近需求，而前馈网络一旦训练好则不可避免存在泛化能力的限制问题。所以如何在速度与质量较好地平衡？ D.Ulyanov在这方面作了重要的推动（<strong><em>Stage2</em></strong>中也有他的重要工作，是基于GAN的思想）。他将传统前馈网络中的BatchNoramlization替换为InstanceNormalization，得到了高于<strong><em>Stage2</em></strong>的风格转移效果。 </p>
+<p>文章：</p>
+<blockquote>
+<p>1  Instance Normalization: The missing ingredient for fast stylization</p>
+<p>2  Improved Texture Networks: Maximizing Quality and Diversity in Feed-forward Stylization and Texture Synthesis</p>
+</blockquote>
+<h3 id="3-1-Instance-Normalization-IN"><a href="#3-1-Instance-Normalization-IN" class="headerlink" title="3.1     Instance Normalization (IN)"></a>3.1     Instance Normalization (IN)</h3><p>为了兼顾效率与准确度，batch训练是比较常用的一种训练方法，即一次从训练集空间中选择多个训练样本进行训练。Batch Normalization (BN)是Google的研究人员提出的一种神经网络训练技巧，它引入被证实可以有效抑制梯度消失，达到更好的训练效果，至少在分类网络中效果较明显。它的有效性在《<a href="http://www.arxiv.org/abs/1502.03167" target="_blank" rel="noopener">Batch Normalization: Accelerating Deep Network Training by Reducing Internal Covariate Shift</a>》中有详细实验。BatchNormalization是将一层网络的输出值重新分布，使其不至于过于集中，而且可以抑制由于网络随机初始值所造成的数值数量级的差别。它的算法为：</p>
+<p><img src="/2019/05/26/image-style-transfer-based-on-neural-network/BN_algorithm.png" alt="BN_algorithm"></p>
+<p>上图截取自Google研究人员发表的文章。其中$x_{i, …, m}$是batch中的样本在同一channel（或dimension的）的集合。注意最后数据在重分布后再施加一个线性拉伸和位移的操作，其参数是可训练的（$\gamma$与$\beta $）。所以BN是按batch、按channel为单位做归一化的数据重分布操作。 与BN相比，IN的算法数学表达基本一致，唯一不同的是，IN的操作单位是按样本、按channel为单位的。下图形象表示了BN与IN的区别：</p>
+<p><img src="/2019/05/26/image-style-transfer-based-on-neural-network/batch_instance.png" alt="batch_instance"></p>
+<p>图中C为Channel, N为Batch， HW为高宽。 </p>
+<h3 id="3-2-fast-high-quality-IST"><a href="#3-2-fast-high-quality-IST" class="headerlink" title="3.2   fast, high quality IST"></a>3.2   fast, high quality IST</h3><p>为什么要提出IN ？ Ulyanov没有说明提出的思想过程。以下是个人理解。在<strong><em>Stage1</em></strong>中，衡量一幅图风格的Gram矩阵表征一个样本在同一网络层不同 feature map之间的相似性，而BN是会在样本与样本之间串扰，和风格属性的独立性不兼容。而BN在分类网络中效果较好是因为它在不同样本间提取了不变的共性的东西，过滤了无关内容导致的分类变化，但这种思想对风格转移并不是太适用。IN归一化时只考虑自身的样本分布，可能对风格转移有提升作用。 Ulyanov利用<strong><em>Stage2</em></strong>中Johnson的工作中的网络结构进行了实验（即仅将原始网络中的BN替换为IN），并证实了这一点：</p>
+<p><img src="/2019/05/26/image-style-transfer-based-on-neural-network/BN_IN_Compare.png" alt="BN_IN_Compare"></p>
+<p>第一列是内容图，最后一列是风格图。  StyleNet是指Johnson的网络结构，由于其使用的归一化是BN，所以这里为了区分用StyleNet BN来指示， StyleNet IN是指保持其它结构不变，仅将BN换作IN的网络结构。 第四列是Gatys迭代法的结果（一般将其结果作为风格转移的最优结果来看待）。 可以看到IN的加入确实对风格转移网络的训练结果产生的明显正向的影响。  </p>
+<p>总结： 这个阶段将BN改为了IN，提升了风格转移的图片质量。但此阶段的网络依然是只能在特定的风格上进行转换，多个风格转换需要训练多个网络。  这里将IN单列为一个阶段是因为后面发现IN的内涵其实是丰富的，对风格转移作用巨大。</p>
+<h2 id="Stage4-fast-high-quality-various-IST"><a href="#Stage4-fast-high-quality-various-IST" class="headerlink" title="Stage4:  fast, high quality, various IST"></a><em>Stage4:  fast, high quality, various IST</em></h2><p>IN替换掉BN使得风格转换的质量提升，实验结论简单但其内在原理待人挖掘。这个阶段的工作对IN的作用进行了细致的研究。另外4.2的工作对Gatys方法的原理进行了探索，也得到好很有意义的结果。这些工作的互相启发最终达到了可以实现任意风格转移的网络。</p>
+<h3 id="4-1-Conditional-Instance-Normalization-CIN"><a href="#4-1-Conditional-Instance-Normalization-CIN" class="headerlink" title="4.1 Conditional Instance Normalization(CIN)"></a>4.1 Conditional Instance Normalization(CIN)</h3><p>文章：</p>
+<blockquote>
+<p>A learned representation for artistic style  （Vincent Dumoulin, etc）</p>
+</blockquote>
+<p>单一风格的风格转移网络虽然可以完成风格转移的任务，但占用空间大，N种风格需要准备N套全量网络参数。Dumoulin认为这种架构浪费了一些信息的内在联系。比如很多印象派画家的笔法其实是相似的，只是选色有区别。所以他认为各种风格之间是有一定的共享计算维度的。继续深入研究，他们发现了一个让人惊讶的现象： 仅仅通过IN层中$\gamma$ 和 $\beta$ 参数就足以对不同的风格建模！  Domoulin没有介绍发现的过程，结论是直接给出的。</p>
+<p>这个发现意味着：可以训练一个对多种风格进行转移的网络，网络结构中除IN层之外的参数皆为共享，而在IN层操作中只需根据目标风格选择其对应的 $\gamma$ 与 $\beta​$ 即可，这种方法形象地被称作conditional instance normalization（CIN）。如下图：</p>
+<p><img src="/2019/05/26/image-style-transfer-based-on-neural-network/CIN.png" alt="CIN"></p>
+<p>根据CIN的思想，很容易进行网络训练。Domoulin也利用上文Johnson的网络结构作相应的微小改动即进行了训练：1） 预定$N​$种风格图片，在训练时随机从内容图片与风格图片中选取作为训练输入； 2）网络的每个IN层有$N​$套 $\gamma​$和$ \beta​$ 训练参数，根据选择的风格只对相应的$\gamma​$ $\beta​$ 进行训练更新其它的$\gamma​$ $\beta​$ 保持不变。 </p>
+<p>一个可以容纳$N$ 种风格的网络，假设其IN层操作的输入有$C$个通道，需要的 $\gamma$$\beta$ 数组个数为 $2NC$个 ，这个数据量比起<strong><em>Stage2</em></strong>中训练$N$套网络要小得多，大大节约了空间。</p>
+<p>使用CIN的风格转移效果如何呢？ Domoulin在论文中的结论是与进行单一风格转移的网络效果相近。结果如下图： </p>
+<p><img src="/2019/05/26/image-style-transfer-based-on-neural-network/CIN_result.png" alt="CIN_result"></p>
+<p>上图是Domoulin从一个能够进行32种风格转换的网络中选出的5种展示。可见确实进行了风格转移，且效果明显。 还是应该提一下，与<strong><em>Stage2</em></strong>不同的是，上图中的图像都是一个网络产生的，对于不同的风格转移任务，仅仅从训练好的$\gamma​$ $\beta​$ 组中选择相应的组作用到IN层即可。</p>
+<h3 id="4-2-variance-and-mean-determines-the-style"><a href="#4-2-variance-and-mean-determines-the-style" class="headerlink" title="4.2 variance and mean determines the style"></a>4.2 variance and mean determines the style</h3><p>文章：</p>
+<blockquote>
+<p>Demystifying Neural Style Transfer,    Yanghao Li, etc.</p>
+</blockquote>
+<p>Li这篇文章的主旨是将风格转移任务看作是分布匹配(distribution alignment)任务，这是领域自适应过程（domain adaptation）的核心，所以领域自适应的知识可以拿过来分析风格转移问题。由此出发，文章同时对Gatys方法的原理也进行了研究。Li 经过推导发现将Gram矩阵匹配作为网络训练的目标等价于最小化“最大均值偏差” （ Maximum Mean Discrepancy, MMD）。 MMD在领域自适应中被用于衡量两个数据分布的距离，而风格本质就是一幅图的数据分布特点，所以也可以衡量风格的相似性，故Gram矩阵是有效的。这让我们从另一个维度看到了Gram矩阵的能力的原因所在。</p>
+<p>文章另一个重要的点，也是与本小结密切相关的，是提出了用另一种风格度量来指导风格转移（文章一共给了4种指导风格转移的衡量方法，这里我们只关注其中的BN层分布匹配方法）。上面讲到，文章的基本出发点是将风格转移以领域自适应的方法作对比。文章认为风格转移就是域匹配，BN层的数据分布，即以$\mu $与 $\sigma$  表示的分布，就包有着“域”的信息，所以匹配此两者也可能匹配风格。于是Li做了实验，即：将Gatys方法中以Gram矩阵为匹配目标的的 $L_{style}$改为以 $\mu$ 和 $\sigma​$ 为匹配目标：</p>
+<p><img src="/2019/05/26/image-style-transfer-based-on-neural-network/mu_sigma_lstyle.png" alt="mu_sigma_lstyle"></p>
+<p>很显然，这样的loss将会迭代出一幅与风格图的每一层$\mu​$ 和 $\sigma​$ 都相近的合成图。下面是根据这种匹配规则的实验结果，确实也可以进行风格转移。</p>
+<p><img src="/2019/05/26/image-style-transfer-based-on-neural-network/yhli_result.png" alt="yhli_result"></p>
+<p>但本文的重点在于研究风格转移任务的本质，而没有做一个任意风格转移的网络。其方法还是迭代的，在速率上自然也不是实时的。</p>
+<h3 id="4-3-arbitrary-IST-in-one-net"><a href="#4-3-arbitrary-IST-in-one-net" class="headerlink" title="4.3 arbitrary IST in one net"></a>4.3 arbitrary IST in one net</h3><p>文章：</p>
+<blockquote>
+<p>Arbitrary Style Transfer in Real-time with Adaptive Instance Normalization,    Xun Huang, etc.</p>
+</blockquote>
+<p>受4.1和4.2的启发，Huang等人最终做了一个任意风格、前向实时转移的网络。</p>
+<p>4.2的工作可以确认网络层的数据分布特征就是与风格密切相关，但Huang还是继续做了一些实验工作。在<strong><em>stage3</em></strong> 中，IN替换掉BN能提高风格转移的效果，Ulyanov给出的解释为IN层对不同的内容图片的对比度变化有鲁棒性。为了验证这种说法，Huang将应用IN到网络后的一些网训练细节数据做了实验。实验在<strong><em>Stage3</em></strong> 文章2的网络结构上进行。结果比较图中 (a)的训练集是原始训练集；(b)的训练集是将原始训练集图片做了对比度统一预处理； (c) 是将原始训练集利用风格转移方法先进行了风格统一预处理（但不是统一到目标风格上），再进行训练。</p>
+<p><img src="/2019/05/26/image-style-transfer-based-on-neural-network/IN_effect_on_style_loss.png" alt="IN_effect_on_style_loss"></p>
+<p>   可以看到，IN实际是比BN更快地降低风格loss，从而达到更好的训练效果，这种优势在(a)和(b)中都较明显，所以 Ulyanov的解释并不全对（由于对比度已经统一化，按照Ulyanov的解释此时应该没有明显收益）。 而更有趣的是，在风格统一化的图片集上，IN与BN对style loss的贡献差别变得很小。这可以理解为风格已经统一化后的训练数据已经在数据分布上没有太多可学习的东西，所以IN与BN效果差别不大。</p>
+<p>既然已经发现一幅的风格与它经过卷积层后的数据分布（$\mu$ 与 $\sigma​$ ）强相关，如何将这种信息利用起来得到一个可以转移任意风格的网络？首先，Huang提出了一种自适应重分布的nomalization方法(Adaptive Normalization,， 简称AdaIN)：</p>
+<p>假设一幅内容图与风格图经过网络某层的输出为$x$ 和 $y$， 对应分布特征分别为为$(\mu(x), \sigma(x))$ ，$(\mu(y), \sigma(y))​$。  则AdaIN的做法是：</p>
+<p>$ x’ = \sigma(y) (\dfrac{x-\mu(x)}{\sigma(x)}) + \mu(y)$ </p>
+<p>即：将内容图输出$x$重分布到风格图输出$y$的均值和方差上去。</p>
+<p>这意味着什么？4.1和4.2中的工作已经提到，对$\sigma$和 $\mu$的变换就会导致风格的变换。AdaIN操作等价于直接将风格信息加到了内容图片的输出上去。但是这些风格信息与内容图纹理信息如何有机地结合恢复成最终的合成图？这还是未知的。为解决该问题，Huang给出了如下网络架构进行任意风格转移：</p>
+<p><img src="/2019/05/26/image-style-transfer-based-on-neural-network/arbitrary_style_transfer.png" alt="arbitrary_style_transfer"></p>
+<p>这里将VGG网络当作编码器使用。将内容图与风格图先经过VGG网络编码到feature map空间，接着将风格图的feature map的分布特点按照AdaIN的方法施加到内容图feature上去，得到一个兼有风格与内容的feature map。 之后该feature map经过解码器恢复成一张图。解码器正是为了解决如果有机结合风格信息与内容信息，所以是需要被训练的。网络最后，VGG再次被用作编码器是为了进行纹理和风格的loss计算。</p>
+<p>下面就欣赏下该方案的效果吧：</p>
+<p><img src="/2019/05/26/image-style-transfer-based-on-neural-network/huang_result.png" alt="huang_result"></p>
+<p>图中同列同内容，同行同风格。</p>
+<p>终于，一个网络，前向一次就可以搞定任意风格转移！</p>
+<h2 id="Extra-Set-to-Set-style-transfer"><a href="#Extra-Set-to-Set-style-transfer" class="headerlink" title="Extra: Set to Set style transfer"></a><em>Extra: Set to Set style transfer</em></h2><p>文章：</p>
+<blockquote>
+<p>Unpaired Image-to-Image Translation using Cycle-Consistent Adversarial Networks,      Junyan Zhu, etc. </p>
+</blockquote>
+<p>这篇文章主要的思想其实是提出了一种新的GAN的工作方式，使用cycle-consistent约束避免普通GAN网络的模式单一化问题，下面称cycle-gan。</p>
+<p>一般GAN网络的流程是源样本集$X​$ 结过生成器$G​$生成假的目标集$Y_{fake}​$ ，之后接一个判别器$D​$ 用于鉴别真假目标集 $Y​$ 和 $Y_{fake}​$， 经过生成器与判别器多轮博弈训练，达到理想平衡的结果是$G​$ 生成的$Y_{fake}​$可以以假乱真。但这样的网络结构有模式单一化的风险，即任何来自$X​$的样本都生成相同的$Y_{fake}​$， 虽然$Y_{fake}​$ 可以以假乱真，但没有了我们想要的多样性，我们希望根据不同的$x \in X​$， 生成的$Y_{fake}​$是不同的。基于此，Zhu提出了cycle-gan的架构。如下图：</p>
+<p><img src="/2019/05/26/image-style-transfer-based-on-neural-network/cycle_gan.png" alt="cycle_gan"></p>
+<p>图中，$G$和 $F$是生成器，$D_x$与$D_y$ 是判别器。可以看到，在cycle-gan中，有两个生成器、两个判别器。它们相互作用保证生成的图片以假乱真，且保证生成样本的多样性。架构中有两个转换循环：</p>
+<p>1） $X$ -&gt; $Y_{fake}$-&gt; $X_{fake}$</p>
+<p>2)    $Y​$-&gt;$X_{fake}​$-&gt;$Y_{fake}​$</p>
+<p>为了保证多样性，架构中加入了consistent-loss（如mse loss），比如一个样本$x \in X$， 经过循环1后返回得到 $x_{fake}$ ， 应该有 $x == x_{fake}$。 这保证了样本级别的多样性。</p>
+<p>cycle-gan能够达到的效果是将一个集合$X​$中的样本变换后达到与另外一个集合$Y​$真假难辨的程度。所以它自然可以风格转移（但其用途远不止风格转移），比如我们将一些普通照片放在$X​$，将梵高的作品集放入$Y​$中，则最终达到的效果是$X​$经过变换后的$Y_{fake}​$ 让判别器无法分辨是否是来自$Y​$集合， 这样，$Y_{fake}​$自然就是具有梵高风格的图画。  cycle-gan作风格转移的妙处在于它无需对风格进行量化，一切都由GAN网络去学习，比较“暴力”。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/12/21/notes-on-python-3.html" rel="next" title="说Python — GIL与并行">
+                <i class="fa fa-chevron-left"></i> 说Python — GIL与并行
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope="" itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Mo, Li</p>
+              <p class="site-description motion-element" itemprop="description">OS / Machine Learning</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">4</span>
+                  <span class="site-state-item-name">posts</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">4</span>
+                  <span class="site-state-item-name">categories</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">2</span>
+                  <span class="site-state-item-name">tags</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/moliam" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:phylimo@163.com" target="_blank" title="E-Mail">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Foreword"><span class="nav-number">1.</span> <span class="nav-text">Foreword</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Stage1：iterative-image-style-transfer-IST"><span class="nav-number">2.</span> <span class="nav-text">Stage1：iterative image style transfer (IST)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Stage2-fast-IST"><span class="nav-number">3.</span> <span class="nav-text">Stage2:   fast IST</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Stage3-fast-high-quality-IST"><span class="nav-number">4.</span> <span class="nav-text">Stage3:  fast, high quality IST</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-Instance-Normalization-IN"><span class="nav-number">4.1.</span> <span class="nav-text">3.1     Instance Normalization (IN)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-fast-high-quality-IST"><span class="nav-number">4.2.</span> <span class="nav-text">3.2   fast, high quality IST</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Stage4-fast-high-quality-various-IST"><span class="nav-number">5.</span> <span class="nav-text">Stage4:  fast, high quality, various IST</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-1-Conditional-Instance-Normalization-CIN"><span class="nav-number">5.1.</span> <span class="nav-text">4.1 Conditional Instance Normalization(CIN)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-2-variance-and-mean-determines-the-style"><span class="nav-number">5.2.</span> <span class="nav-text">4.2 variance and mean determines the style</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-3-arbitrary-IST-in-one-net"><span class="nav-number">5.3.</span> <span class="nav-text">4.3 arbitrary IST in one net</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Extra-Set-to-Set-style-transfer"><span class="nav-number">6.</span> <span class="nav-text">Extra: Set to Set style transfer</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Mo, Li</span>
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a></div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.4</div>
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+      Read
+    </span>
+  
+
+  
+    <span class="site-pv">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+      Read
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.4"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    var isXml = true;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length === 0) {
+      search_path = "search.xml";
+    } else if (/json$/i.test(search_path)) {
+      isXml = false;
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    var onPopupClose = function (e) {
+      $('.popup').hide();
+      $('#local-search-input').val('');
+      $('.search-result-list').remove();
+      $('#no-result').remove();
+      $(".local-search-pop-overlay").remove();
+      $('body').css('overflow', '');
+    }
+
+    function proceedsearch() {
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay"></div>')
+        .css('overflow', 'hidden');
+      $('.search-popup-overlay').click(onPopupClose);
+      $('.popup').toggle();
+      var $localSearchInput = $('#local-search-input');
+      $localSearchInput.attr("autocapitalize", "none");
+      $localSearchInput.attr("autocorrect", "off");
+      $localSearchInput.focus();
+    }
+
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+      'use strict';
+
+      // start loading animation
+      $("body")
+        .append('<div class="search-popup-overlay local-search-pop-overlay">' +
+          '<div id="search-loading-icon">' +
+          '<i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>' +
+          '</div>' +
+          '</div>')
+        .css('overflow', 'hidden');
+      $("#search-loading-icon").css('margin', '20% auto 0 auto').css('text-align', 'center');
+
+      $.ajax({
+        url: path,
+        dataType: isXml ? "xml" : "json",
+        async: true,
+        success: function(res) {
+          // get the contents from search data
+          isfetched = true;
+          $('.popup').detach().appendTo('.header-inner');
+          var datas = isXml ? $("entry", res).map(function() {
+            return {
+              title: $("title", this).text(),
+              content: $("content",this).text(),
+              url: $("url" , this).text()
+            };
+          }).get() : res;
+          var input = document.getElementById(search_id);
+          var resultContent = document.getElementById(content_id);
+          var inputEventFunction = function() {
+            var searchText = input.value.trim().toLowerCase();
+            var keywords = searchText.split(/[\s\-]+/);
+            if (keywords.length > 1) {
+              keywords.push(searchText);
+            }
+            var resultItems = [];
+            if (searchText.length > 0) {
+              // perform local searching
+              datas.forEach(function(data) {
+                var isMatch = false;
+                var hitCount = 0;
+                var searchTextCount = 0;
+                var title = data.title.trim();
+                var titleInLowerCase = title.toLowerCase();
+                var content = data.content.trim().replace(/<[^>]+>/g,"");
+                var contentInLowerCase = content.toLowerCase();
+                var articleUrl = decodeURIComponent(data.url);
+                var indexOfTitle = [];
+                var indexOfContent = [];
+                // only match articles with not empty titles
+                if(title != '') {
+                  keywords.forEach(function(keyword) {
+                    function getIndexByWord(word, text, caseSensitive) {
+                      var wordLen = word.length;
+                      if (wordLen === 0) {
+                        return [];
+                      }
+                      var startPosition = 0, position = [], index = [];
+                      if (!caseSensitive) {
+                        text = text.toLowerCase();
+                        word = word.toLowerCase();
+                      }
+                      while ((position = text.indexOf(word, startPosition)) > -1) {
+                        index.push({position: position, word: word});
+                        startPosition = position + wordLen;
+                      }
+                      return index;
+                    }
+
+                    indexOfTitle = indexOfTitle.concat(getIndexByWord(keyword, titleInLowerCase, false));
+                    indexOfContent = indexOfContent.concat(getIndexByWord(keyword, contentInLowerCase, false));
+                  });
+                  if (indexOfTitle.length > 0 || indexOfContent.length > 0) {
+                    isMatch = true;
+                    hitCount = indexOfTitle.length + indexOfContent.length;
+                  }
+                }
+
+                // show search results
+
+                if (isMatch) {
+                  // sort index by position of keyword
+
+                  [indexOfTitle, indexOfContent].forEach(function (index) {
+                    index.sort(function (itemLeft, itemRight) {
+                      if (itemRight.position !== itemLeft.position) {
+                        return itemRight.position - itemLeft.position;
+                      } else {
+                        return itemLeft.word.length - itemRight.word.length;
+                      }
+                    });
+                  });
+
+                  // merge hits into slices
+
+                  function mergeIntoSlice(text, start, end, index) {
+                    var item = index[index.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    var hits = [];
+                    var searchTextCountInSlice = 0;
+                    while (position + word.length <= end && index.length != 0) {
+                      if (word === searchText) {
+                        searchTextCountInSlice++;
+                      }
+                      hits.push({position: position, length: word.length});
+                      var wordEnd = position + word.length;
+
+                      // move to next position of hit
+
+                      index.pop();
+                      while (index.length != 0) {
+                        item = index[index.length - 1];
+                        position = item.position;
+                        word = item.word;
+                        if (wordEnd > position) {
+                          index.pop();
+                        } else {
+                          break;
+                        }
+                      }
+                    }
+                    searchTextCount += searchTextCountInSlice;
+                    return {
+                      hits: hits,
+                      start: start,
+                      end: end,
+                      searchTextCount: searchTextCountInSlice
+                    };
+                  }
+
+                  var slicesOfTitle = [];
+                  if (indexOfTitle.length != 0) {
+                    slicesOfTitle.push(mergeIntoSlice(title, 0, title.length, indexOfTitle));
+                  }
+
+                  var slicesOfContent = [];
+                  while (indexOfContent.length != 0) {
+                    var item = indexOfContent[indexOfContent.length - 1];
+                    var position = item.position;
+                    var word = item.word;
+                    // cut out 100 characters
+                    var start = position - 20;
+                    var end = position + 80;
+                    if(start < 0){
+                      start = 0;
+                    }
+                    if (end < position + word.length) {
+                      end = position + word.length;
+                    }
+                    if(end > content.length){
+                      end = content.length;
+                    }
+                    slicesOfContent.push(mergeIntoSlice(content, start, end, indexOfContent));
+                  }
+
+                  // sort slices in content by search text's count and hits' count
+
+                  slicesOfContent.sort(function (sliceLeft, sliceRight) {
+                    if (sliceLeft.searchTextCount !== sliceRight.searchTextCount) {
+                      return sliceRight.searchTextCount - sliceLeft.searchTextCount;
+                    } else if (sliceLeft.hits.length !== sliceRight.hits.length) {
+                      return sliceRight.hits.length - sliceLeft.hits.length;
+                    } else {
+                      return sliceLeft.start - sliceRight.start;
+                    }
+                  });
+
+                  // select top N slices in content
+
+                  var upperBound = parseInt('1');
+                  if (upperBound >= 0) {
+                    slicesOfContent = slicesOfContent.slice(0, upperBound);
+                  }
+
+                  // highlight title and content
+
+                  function highlightKeyword(text, slice) {
+                    var result = '';
+                    var prevEnd = slice.start;
+                    slice.hits.forEach(function (hit) {
+                      result += text.substring(prevEnd, hit.position);
+                      var end = hit.position + hit.length;
+                      result += '<b class="search-keyword">' + text.substring(hit.position, end) + '</b>';
+                      prevEnd = end;
+                    });
+                    result += text.substring(prevEnd, slice.end);
+                    return result;
+                  }
+
+                  var resultItem = '';
+
+                  if (slicesOfTitle.length != 0) {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + highlightKeyword(title, slicesOfTitle[0]) + "</a>";
+                  } else {
+                    resultItem += "<li><a href='" + articleUrl + "' class='search-result-title'>" + title + "</a>";
+                  }
+
+                  slicesOfContent.forEach(function (slice) {
+                    resultItem += "<a href='" + articleUrl + "'>" +
+                      "<p class=\"search-result\">" + highlightKeyword(content, slice) +
+                      "...</p>" + "</a>";
+                  });
+
+                  resultItem += "</li>";
+                  resultItems.push({
+                    item: resultItem,
+                    searchTextCount: searchTextCount,
+                    hitCount: hitCount,
+                    id: resultItems.length
+                  });
+                }
+              })
+            };
+            if (keywords.length === 1 && keywords[0] === "") {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>'
+            } else if (resultItems.length === 0) {
+              resultContent.innerHTML = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>'
+            } else {
+              resultItems.sort(function (resultLeft, resultRight) {
+                if (resultLeft.searchTextCount !== resultRight.searchTextCount) {
+                  return resultRight.searchTextCount - resultLeft.searchTextCount;
+                } else if (resultLeft.hitCount !== resultRight.hitCount) {
+                  return resultRight.hitCount - resultLeft.hitCount;
+                } else {
+                  return resultRight.id - resultLeft.id;
+                }
+              });
+              var searchResultList = '<ul class=\"search-result-list\">';
+              resultItems.forEach(function (result) {
+                searchResultList += result.item;
+              })
+              searchResultList += "</ul>";
+              resultContent.innerHTML = searchResultList;
+            }
+          }
+
+          if ('auto' === 'auto') {
+            input.addEventListener('input', inputEventFunction);
+          } else {
+            $('.search-icon').click(inputEventFunction);
+            input.addEventListener('keypress', function (event) {
+              if (event.keyCode === 13) {
+                inputEventFunction();
+              }
+            });
+          }
+
+          // remove loading animation
+          $(".local-search-pop-overlay").remove();
+          $('body').css('overflow', '');
+
+          proceedsearch();
+        }
+      });
+    }
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched === false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+    });
+
+    $('.popup-btn-close').click(onPopupClose);
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+    $(document).on('keyup', function (event) {
+      var shouldDismissSearchPopup = event.which === 27 &&
+        $('.search-popup').is(':visible');
+      if (shouldDismissSearchPopup) {
+        onPopupClose();
+      }
+    });
+  </script>
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+  
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+        }
+      });
+    </script>
+
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdn.bootcss.com/mathjax/2.7.1/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+  
+
+
+  
+
+  
+
+</body>
+</html>
